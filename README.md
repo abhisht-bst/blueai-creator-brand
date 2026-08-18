@@ -1,3 +1,5 @@
+> **Branch note:** this branch holds the pre-robot variant of the mock (the version live at https://blueai-users.vercel.app): laptop screen shows the task list, no worker robot, no ghost crew. The robot version lives on main.
+
 # BlueAI Creator Homepage: Version B Mock
 
 Single-file mock of the futuristic creators homepage ("The AI You Own"), built for the Version B repositioning: BlueAI as an AI worker you own and deploy, with the creator program as its first asset.
