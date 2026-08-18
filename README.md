@@ -23,4 +23,4 @@ There is also a bottom-right dock with a time-aware line and a mini earnings cou
 
 - The demo numbers (per-task dollars, earned total) are illustrative; the honest fixed amount ($30/month) lives in the copy per the Aug 2026 design sync. The task-loop UI treatment is with the design team.
 - Visuals are placeholder-grade: the robot and scene are hand-drawn SVG specs for the design team to redraw in brand style.
-- Live preview also deployed at https://blueai-users.vercel.app (may lag this repo).
+- Live preview also deployed at [WIP] (may lag this repo).
