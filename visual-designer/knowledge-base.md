@@ -1,0 +1,400 @@
+# blueAI — Knowledge Base
+Last updated: 2026-08-11 (Session 18 — +1 trap (a throw inside requestAnimationFrame/any async callback
+surfaces nowhere in the UI: the sequence stops mid-way and reads as FINISHED, console only — so read the
+console before re-reading your own logic) and widened the `d || DEFAULT` "cannot express its own absence"
+trap to cover DECLARATION ORDER, which produced the same plausible-wrong-state from `var` hoisting. Earlier:
+2026-08-11 (Session 17 — 3 new blueai-desktop traps: the `#scaler` scaled-vs-local px divide (2 instances, one of which produced 54 false failures in a brand-new gate), the `x || default` falsy-argument footgun, and the vacuous-harness-pass class. Earlier: 2026-08-01 (the design-system build — DS architecture + traps: base-href fragment rebasing, token scope vs fixed-position, the .bai-scope alias, pill-radius clamping, ellipsis false positives, pinned generators))
+
+## blueai-desktop — CSS + testing traps (2026-07-25 audit, first entries for this surface)
+- **A flex container's `gap` ADDS to a child's own pre-existing CSS margin — it does not collapse or
+  override it.** Moving a component (e.g. a `.bai-set-label`, designed assuming it's the ONLY spacing
+  mechanism around it) into a NEW container that has its own `gap` silently doubles the space on
+  whichever side the margin still has a value. Caught on the AI Credits screen's "CREDIT BREAKDOWN"
+  label: `margin: 0 0 8px` inside a `gap:10` wrap rendered as 10px above (gap alone, margin-top was
+  zeroed) but 18px below (gap 10 + margin-bottom 8) — backwards from "label owns what's right below
+  it." Fix: net the margin against the gap (`margin-bottom: -2px` → effective 8px), don't assume old
+  standalone-context spacing math still holds once nested in a gap-controlled parent. **Always
+  measure with `getBoundingClientRect`, not eyeballed** — this exact inversion is invisible by eye at
+  a 2px-ish difference and only surfaced once actually measured.
+- **A "hover menu closes before I can reach it" bug can ONLY be verified with real, stepped mouse
+  travel — a before/after snapshot check will report success while the bug still ships.** The failure
+  happens DURING the cursor's transit across the gap between the trigger and a `position:absolute`
+  floating menu (`mouseleave` fires on the trigger the instant the cursor crosses ANY non-descendant
+  element in that gap, even a menu that IS a real DOM child). Root fix: wire show/hide to BOTH the
+  trigger and the floating menu (either one being hovered keeps it open) + a short grace-period
+  timeout (150ms) so brief crossing jitter never triggers a hide. Verification: Playwright
+  `mouse.move(x, y, {steps: N})` stepping from the trigger to the target, polling the shown/hidden
+  state at every intermediate step — not `page.hover()` (which jumps) and not a scripted `.click()`
+  (which bypasses the real hover mechanism entirely). Caught on the credits-header popover after
+  designer report: "when I go over to view details it closes before I reach it."
+
+## Design-system architecture + traps (2026-08-01 — the DS build)
+- **A <base href> re-bases FRAGMENT links too.** Copying index.html's `<base href="/blueai-desktop/">` into
+  style-guide.html made every `#section` link resolve to `/blueai-desktop/#section`, which the server answers
+  with the directory index — so every sidebar click left the guide for the product. Inheriting a solution
+  without inheriting its problem. A page whose own paths are same-directory relative needs no base at all.
+- **Tokens scoped to `.drawer` do not reach `position:fixed` descendants of `<body>` — but the fix is to
+  hand them the scope, not to give up.** (Rewritten 2026-08-01; the first version of this entry taught the
+  wrong move.) Tokenising the dev Preview panel's sizes once collapsed its radius to 0px because it lives
+  outside `.drawer`; the original entry concluded "literals + a do-not-tokenise note, NOT widening the token
+  scope." That conclusion outlived its own justification the day `.bai-scope` (the tokens-only alias) was
+  created, and the raw literals then sat in the guide's tally as unexplained amber rows until the designer
+  asked why. Current truth: the panel's wrapper carries `bai-scope`, its sizes go through tokens, and zero
+  per-selector exemptions remain in the gate. The durable lessons: *check ancestry before tokenising anything
+  fixed-position* (still true), and *an exemption is a claim with an expiry date that nothing re-checks —
+  re-derive it whenever the mechanism it cites changes.*
+- **A tokens-only alias makes a style guide possible.** Component rules here are plain global classes that
+  resolve `var(--bai-*)`; only the token declarations are `.drawer`-scoped. Adding `.bai-scope` alongside
+  `.drawer` on the token blocks (and on the three `.drawer.light` component overrides) lets any container
+  request the real token values with no second copy. Do not alias it onto the `.drawer` LAYOUT rule.
+- **A 20px radius on a <=40px-tall element is already fully round**, so 20px -> 999px is a no-op: radius is
+  clamped to half the smaller dimension. Proven by pixel-diffing `.bai-tgl` at both values (byte-identical),
+  not assumed.
+- **`overflow:hidden` + `text-overflow:ellipsis` + `nowrap` always reports `scrollWidth > clientWidth`.** An
+  overflow scanner must exclude it or it reports every designed truncation as a defect.
+- **A generator that reads HEAD becomes un-re-runnable once its own output is adopted.** `gen_icons.js` read
+  the product's literal icon paths from `git show HEAD`; after index.html was rewired to read them back from
+  the generated file, HEAD no longer contained them. Pin such scripts to the source commit.
+
+## Creator-v2 studio-concept era (S8 audit — the 06-13→06-24 backlog)
+- **AnimatePresence orphan trap:** toggling presence DURING the exit animation orphans the scrim DOM node — a dead full-screen scrim that no state change can remove (we had 2 stacked). For modals that can be opened/closed fast → **conditional render** (`if (!open) return null`) + a plain enter-only `motion.div`; reserve AnimatePresence for surfaces that can't be rapid-toggled.
+- **Popover escape kit (three distinct traps, one component):** (1) `backdrop-filter` creates a stacking context — a menu inside it can't out-z LATER siblings; lift the CONTEXT (`position:relative; z-index` on the flex item — flex-item z-index applies). (2) An ancestor `overflow:hidden` clips absolute menus regardless of z-index → **createPortal to `document.body`** with `position:fixed` from `getBoundingClientRect` (+ close on outside-mousedown excluding trigger AND menu, Escape, scroll, resize). (3) Portaled CSS must be UNSCOPED (it renders outside the page root class) — safe when tokens live at `:root`. This is `CreatorSelect.tsx` — reuse it for any themed dropdown.
+- **WebGL canvas (GradientCanvas):** size from a **ResizeObserver**, not window `resize` (preview_resize doesn't dispatch it); dispose renderer/geometry on unmount; `prefers-reduced-motion` → render one static frame.
+- **Two dev servers on one Next project corrupt the shared `.next` cache** (PackFileCacheStrategy ENOENT rename → phantom 404s + 90s+ latencies). PERMANENT FIX in place: `distDir: process.env.BLUEAI_DIST_DIR || '.next'` + the blueai-3001 launch config sets `.next-3001`. If it still recurs: stop server → clear `.next/cache` → restart.
+- **Verification traps on animated pages:** `preview_screenshot` wedges on WebGL/continuous-motion pages (renderer never idles) → verify via DOM/computed-style evals, SSR-HTML greps, direct HTTP probes. React re-render is ASYNC → click in one eval, READ in a separate eval. Clicks immediately after reload no-op (hydration race). `target=_blank` navs throw in headless evals (artifact, not a bug).
+- **Licensed stock for a public deploy:** Pexels API (free, commercial OK, no attribution) is the source for demo media; NEVER scrape branded AI-tool outputs (IP exposure — declined twice, designer agreed). Media auto-replace convention: drop real files at `public/videos/<slug>.mp4/.jpg` → replaces everywhere by filename, zero code change.
+- **Typewriter-as-placeholder:** animate example prompts in a GHOST layer shown only while `value === '' && !focused`; the field itself stays editable — a readOnly lock on the MAIN input reads as broken (taste 35).
+
+## Motion, stacking, and clone mechanics (S6 — live-demo-v2)
+- **framer-motion does NOT reliably interpolate `clip-path` strings — it SNAPS to the target.** For a clip-path wipe/reveal, use a CSS `@keyframes` + a class toggle; keep framer for `pathLength`, opacity, transform. (Confirmed: animating `clipPath: inset(0%)→inset(100%)` via framer jumped instantly.)
+- **A double object-spread clobbers the framer `animate` prop.** `<motion.x {...drawA} {...drawB} />` where both define `animate`/`transition` → the second wins, the first's keyframes silently vanish. Merge into ONE `animate`. (This — not `var()` — was the blank-blueprint bug. **`var()` in SVG presentation attributes `stroke=`/`fill=` DOES work in Chrome**; the earlier "doesn't resolve" note is retracted. Still prefer CSS for SVG color so framer owns only motion.)
+- **A fixed/floating child can NEVER escape an ancestor's stacking context.** A `z-index` on any ancestor (e.g. `main { z-index:1 }`) caps a `position:fixed` descendant at that ancestor's level — so a later sibling (the footer) paints over it. Fix: give ancestors NO z-index (DOM order alone layers content above a z-0 backdrop); raise only the few elements that must win (nav). Audit every ancestor `z-index` whenever fixed/docked UI exists.
+- **Miniaturize a live view by SCALING the designed layout (`transform: scale`), never by reflowing it** to a width it wasn't built for (reflow at miniature = cropped/cramped). Keep the designed canvas size, scale the whole thing.
+- **`/route` REDIRECT (not rewrite) when a static page uses RELATIVE asset paths** (an iframe `src="app.html"`): a rewrite keeps the URL at `/route` so the relative path 404s; a redirect lands the browser on `/route/index.html` where it resolves. Static clone = byte-copy into `public/` (hash-verify), strip any nested `.git` (an embedded repo breaks `git add`).
+- **The dev server can die SILENTLY** (browser shows an error page, the log just stops — no crash trace). Before debugging a "broken" route, CHECK THE PORT (`Get-NetTCPConnection -LocalPort 3000`); restart if down. Happened ~5× in S6 — a process-stability quirk, not the code.
+- **Verifying a transient (~1-2s) animation through high-latency tooling:** screenshots race the animation and usually land after it finishes. To SEE a phase: temporarily HOLD the component there (drop the advance-timeouts / lengthen the duration), screenshot, revert. For endpoints, a settle check + a mid-animation DOM sample (computed style) is enough.
+
+## Style-guide architecture + verification traps (S5)
+- **`form-kit.tsx` molecules** (`components/agent/form-kit.tsx`) — the layer between the `.jmf-*` atoms (agent.css) and the 4 form components: `Field` (generic label+control+hint, `<div>` because controls may contain buttons) · `TextField`/`TextAreaField`/`SelectField` (label-wrapped natives) · `PillsField` (single OR multi — `value: string | string[]`) · `Tabs<K>` (generic key type) · `FormHead` · `Agree` · `Submit` (always carries `<Arrow size={18}/>`). No form hand-writes field markup. Documented standalone in SG "Form field molecules".
+- **SG anatomy primitives** (`components/style-guide/Anatomy.tsx`): `Anatomy` (per-row recipe table) · `Tok` (mono token name linking to a `tok-*` id) · `PreviewAnatomy` (`layout='split'` for narrow components, `'stack'` for full-width ones like the header — a half-width column would distort a full-bleed preview). Token focus ring: `[id^='tok-']:target` in `style-guide.css` draws an iris ring + brief pulse on the linked swatch (reduced-motion gated).
+- **NEVER wrap a contained SG showcase in a PAGE-ROOT scope class without the reset.** `.v-site`/`.v-seo`/`.bai-home`/`.v-rewards` carry `min-height:100vh` + a page background — a demo wrapped in one balloons to a full viewport. `.sg-demo` (style-guide.css) neutralises both while keeping the scoped descendant CSS working.
+- **A hash-only navigation (`/page#x`) is a same-document scroll, NOT a reload — the browser keeps serving the originally-loaded CSS/JS.** Cost ~10 cycles: every rebuild looked like it "did nothing" (the `text-2xs` rule "missing" after a config add, an @layer add, a plain-CSS add — ALL actually worked). Before re-measuring a CSS/token change in the browser, force `location.reload()` or navigate to a genuinely different path. Corollary: never ship a comment asserting a mechanism "doesn't work" until verified under a true reload (the Tailwind `2xs` fontSize key works fine).
+- **Reading DOM state synchronously after `.click()` races React's re-render** — `className` checks right after a click read the PRE-update DOM and falsely report "no toggle." Await ~100ms (or a `requestAnimationFrame`) before asserting.
+- **Anatomy/doc rows must be grep-verified against the real CSS** — I wrote `.jmf-label` from memory; the class is `.jmf-lbl`. Recipes are quotes, not recollections.
+- **Neutral + page channel tokens (S5):** `--bai-ink-rgb: 8,10,31` (every neutral scrim/hairline/shadow rgba derives from it) · `--bai-shadow-hairline` (+ `shadow-hairline` utility — resting cards) · `--bai-page-rgb`/`--bai-page`/`--bai-page-grad` (the marketing page surface + gradient; frosted bars = `rgba(var(--bai-page-rgb), .8)`). Tailwind `float`/`overlay` point at the `--shadow-*` vars (SSOT). Known boundary (unchanged): SVG `<stop>` attrs can't take `var()` — FinanceLegacy's two gradient stops stay literal.
+
+## Agent demo form kit (`.jmf-*`) + interactive demo primitives (S4 — the discrepancy sweep)
+The 4 agent pages' hero demos are FAITHFUL INTERACTIVE replicas of the live bluestacks.ai forms (design-only — submits `preventDefault`), built on one shared CSS kit + a few client components:
+- **`.jmf-*` kit** (in `agent.css`): `jmf-card` (panel) · `jmf-head`/`jmf-title`/`jmf-sub` · `jmf-field`/`jmf-lbl`/`jmf-opt` · `jmf-input`(+`jmf-textarea`,`jmf-select` w/ data-URI chevron) · `jmf-tabs`/`jmf-tab` (segmented toggle) · `jmf-pills`/`jmf-pill.is-on`/`jmf-check` (single- OR multi-select) · `jmf-upload`/`jmf-file-*` · `jmf-agree` (checkbox) · `jmf-hint` · `jmf-submit` (full-width CTA + `<Arrow>`). Accent = solid `--bai-mkt-blue` (matches the live's solid blue, NOT the brand gradient); focus ring `rgba(var(--bai-mkt-blue-rgb),.15)`.
+- **`components/agent/`**: `CareerForm` (8 fields incl. multi-select Location + Seniority `<select>` + Resume upload + agree), `CreatorForm` (textarea + Style/Platforms/Length pills), `FinanceForm` + `MarketsForm` (TABBED — Upload/Ask, Watch/Ask), `FileUpload` (stateful — see below), `VideoCard` (click-to-play), `glyphs.tsx` (`Check`/`UploadIcon`).
+- **`FileUpload`** — the all-states control (taste rule 24): hidden native `<input type=file>` triggered by a custom "Choose file" button; EMPTY = upload icon + Choose file + "No file chosen"; FILLED = file icon + filename + remove (✕), box flips dashed→solid (`is-filled`); ✕ resets state + `input.value=''`. **Wrap it in a `<div>`, NOT a `<label>`** — a label would double-fire the picker alongside the trigger button.
+- **`VideoCard`** — real `<video>` (poster + `loop`/`playsInline`/`preload=metadata`, no native controls), click toggles play/pause, overlay hides while playing; guard `el.play()?.catch(()=>{})` (autoplay-interruption rejects). Videos live in `public/videos/` (downloaded from the live site).
+- **Tabs are styled toggle buttons** (`aria-pressed`), NOT a full ARIA tablist — a `role="tab"` without `role="tabpanel"`+`aria-controls` is a worse, incomplete contract; for a segmented control that swaps inline fields, `aria-pressed` is the honest semantic.
+- **Documented in `/style-guide` → "Agent page components"** (S4 audit — `components/style-guide/AgentComponents.tsx`): live `CareerForm` (the kit) + tabbed `FinanceForm` + `FileUpload` (all states) + trade-log BUY/SELL badges + `VideoCard`, rendered REAL (wrapped in `.v-agent`) so the docs can't drift. **Tokenisation verdict (S4, mechanically grepped):** every color/radius/shadow uses `--bai-*` / `--radius-*` / channel-rgb tokens; the BUY/SELL badges reuse `--bai-success/danger-*`. The ONLY raw colors are **Tier-3 bespoke** (the VideoCard frame gradient `#2a2350…` + play glyph `#1b1340` — single-surface decoration, stays local per the tiering rule) + the **deferred neutral-ink alpha** `rgba(8,10,31,…)` (the file's established shadow/tint literal). No Tier-1/2 leaks; no new global token was needed. Literal px for type/spacing in scoped marketing CSS is the DORMANT MARKETING SITE's frozen convention (matches homepage/hero CSS) — **SCOPE CLAUSE added 2026-08-03, because as written this sentence contradicted two standing rules and an audit caught it.** Craft rule 40 (*"tokenise sizes, not just colours — an untokenised axis drifts by default"*) is explicitly declared surface-independent, and rule 26 is a designer directive with no scope clause at all (*"EVERYTHING is tokenised — even a space or padding"*). Both outrank this note. It is a record of what the dormant site already IS, frozen, **not a precedent and never a defence for new work** — blueai-desktop has zero raw font-size/radius px and `ds-drift-check.js` §8 fails on any. If the marketing site ever resumes, tokenising it is the correct first move, not an exception to be preserved.
+
+## CSS + shared-template gotchas (S4)
+- **Descendant element selectors are specificity traps.** `.ag-more-card span` (0,2,1) OUT-SPECIFIES a `.ag-more-ic` class (0,2,0) — and an icon wrapper IS a span — so the text-styling rule (`display:block; 12px`) bled onto the emoji tile and cramped it top-left. **Scope text rules to the inner wrapper class** (`.ag-more-tx span`), never `.card span`. Any `.parent element` selector silently captures every matching descendant.
+- **Shared-template copy must be data-driven, never hardcoded.** `AgentShell` hardcoded the how-it-works H2 as "From targets to done" (career's words) → it leaked onto creator/finance/markets. Fix: per-instance `hiwHeading` field on `AgentData` with a default. Any shared shell rendering instance-specific copy must read it from data.
+- **When the in-page (Claude-in-Chrome) extension blocks a DOM read** with `[BLOCKED: Cookie/query string data]` (triggered by URL-bearing content — e.g. Polymarket/Kalshi links in the markets SEO copy), fall back to `node -e "fetch(url).then(r=>r.text())"` on the SSR HTML + strip tags. The SSR markup carries the same text.
+- **A mobile dropdown menu must be OPAQUE + dim the page behind it (scrim)** — never translucent over live content (the hero text ghosts through; a 2nd CTA below competes). Opaque menu + a tap-to-close scrim (`top:100%` so the bar stays crisp) is the focused-overlay pattern.
+
+> blueAI's reusable components, patterns, and token hygiene. blueAI's own — unrelated
+> to WSUP/now.gg.
+
+## Component library (BUILT — session 1)
+**Foundation**
+- `globals.css` — the `--bai-*` token layer (brand gradient + wash, cool neutral ramp,
+  type/spacing/radii/shadow/motion vars) + the `.bai-*` semantic type classes (DS API).
+- `tailwind.config.ts` — utilities mapped onto the vars (`bg-iris`, `text-ink-*`,
+  `bg-bai-gradient`/`bg-bai-wash`, `rounded-card/field/pill/bubble-*`, `shadow-float/overlay`,
+  `font-head`/`font-brand`, the px type scale).
+
+**Homepage (`components/home/`)** — shared body under every hero, styles in `styles/homepage.css` (`.bai-home`).
+- `BaiHome` — orchestrator (intro → features → skills → all-skills → powered-by → footer).
+- `FeatureRows` — 5 alternating feature rows (data: `lib/home-data.ts` FEATURES).
+- `AllSkills` — 15-card skill grid + "more on the way" tile (data: SKILLS).
+- `DownloadCta` — the tri-stop gradient "Download BlueAI" pill (also the hero CTA via `HeroCta`).
+
+**Hero (`components/hero/`)**
+- `HeroStage` (rich, 2-col, Recommended) · `HeroCards` (legacy, 3-card) · `HeroStageOriginal` (legacy, big stage + rail).
+- `HeroNav` (shared nav + logomark) · `HeroCta` · `HeroArrow`.
+- Scenes — RICH: `scenes/{Career,Creator,Finance}Scene.tsx`. LEGACY (shared by 3-Cards + Stage Original): `scenes/{Career,Creator,Finance}Legacy.tsx`.
+- Hooks: `useTypewriter` (typed text) · `useCountUp` (eased number count).
+
+**Style guide (`components/style-guide/` + `app/style-guide/`)**
+- `ComponentsSection` (buttons · ✦ pills · feature cards · message bubbles · composer · panel header) + the page (Colors · Type · Scales · Components).
+
+## Patterns
+- **Phase-driven Framer scene** (codified S1): a `STEPS` array of setTimeouts advances a
+  `phase` int on mount; `motion` components animate off `phase` (no GSAP). Scene replays
+  by remounting (AnimatePresence key / conditional render on activation). Reusable for any
+  multi-step demo animation.
+- **Per-route scoped hero CSS + full-nav `<a>`** (codified S1): variants that reuse generic
+  class names at different sizes stay isolated by route; cross-route links must be full-page.
+- **Gradient text** — `.text-gradient` utility (background-clip:text on `--bai-gradient`)
+  for inline "BlueAI" / "BlueStacks AI" highlights + the credits count.
+- **Spotlight animation loop** (S2) — multi-instance demo scenes (the 3-card grid, the
+  rail-of-agents) animate ONE at a time. Each scene takes an `active` prop and only runs its
+  phase timeline when active; inactive scenes rest at the FINAL/completed phase
+  (`useState(active ? 0 : FINAL)`; `useCountUp` got an `instant` flag so resting counters show
+  the end value). The active scene replays from scratch via a KEYED REMOUNT (bump a `gen`/`key`
+  on activation). Hover pauses the loop + restarts the hovered scene; leave resumes. Never let
+  all scenes auto-play on mount.
+
+## Motion (framer-motion) — load-bearing gotchas (S2)
+A whole family of bugs traces to **framer owning two things React doesn't expect**:
+- **It owns the `transform` property.** Centering a `motion.*` element with CSS
+  `transform: translate(-50%,-50%)` FAILS — framer overwrites transform with its animated value
+  (e.g. `scale`), leaving the element offset. Center with `position:absolute; inset:0;
+  margin:auto` (definite size) or flex/grid on the parent. (Hit on `.cv-play`.)
+- **It replays `initial → animate` on EVERY mount.** A keyed component that remounts in a
+  "should-not-animate" state still plays its entrance. Pass `initial={false}` to mount straight
+  at the resting state. (Hit when the spotlight handed off — just-left cards re-animated.)
+- **Type the `initial`/`animate` helpers as `TargetAndTransition`, not `object`.** `object` is
+  too wide for framer's prop union and FAILS the prod `next build` typecheck (passes in dev).
+  (S2 deploy fix — the `init(v?: object)` helper in the 3 legacy scenes.)
+- **Animated footers over flowing content** — don't absolutely-pin them (they overlap when
+  content grows); let them flow with `margin-top:auto` in a flex column. MEASURE gaps in-browser
+  (`getBoundingClientRect`), don't eyeball — a by-eye estimate was 3× off.
+
+## CSS architecture — production chunking can leak generic class rules (S2, important)
+The per-route-scoped hero stylesheets reuse generic global class names (`.hero`, `.pane-title`,
+`.hero-screen`). The "isolated by route + full-page `<a>` nav" mitigation holds in DEV (CSS
+injected in import order) but NOT in the production bundle: Next chunked **hero-cards.css's
+`.hero{text-align:center}` onto the `/hero/stage` route**, so the Stage `.hero` (no text-align)
+resolved to center and `.hero-right` inherited it → heading/scene centered on Vercel, left in dev.
+Confirmed by fetching the live CSS chunks.
+- **Cheap guard (used):** never rely on INHERITANCE for a property a sibling stylesheet sets on
+  a shared class — set it explicitly on a uniquely-named descendant. An own declaration beats an
+  inherited value regardless of chunk grouping/order (`.hero-right{text-align:left}`;
+  `.hero-right` is Stage-only).
+- **Proper fix (DONE, S2):** scoped each variant stylesheet under a unique root class —
+  `.v-stage` / `.v-cards` / `.v-original` (added to each page wrapper), mirroring `.bai-home` /
+  `.ho`. `.hero-page`/`.hero-screen` are shared by all 3 variants, so a NEW per-variant modifier
+  class was added. Done via `.scripts/scope-css.js` (idempotent postcss transform — `:root` +
+  `@keyframes` kept global). Verified: the built bundle has ZERO unscoped generic hero rules →
+  cross-route leaks are now structurally impossible (also closes the `.hero` padding leak + the
+  Stage-Original `.cv-trend` bug). The `.hero-right{text-align:left}` guard is now redundant-but-
+  harmless. **If a 4th variant / new shared-name stylesheet is added, scope it from the start.**
+- **`next build` runs STRICT TS; `next dev` does not.** Always `npx next build` before relying on
+  a deploy — two prod build failures in S2 (the framer type + the CSS leak, the latter only
+  visible in the prod bundle).
+- **CSS-comment `*/` gotcha (S2 audit #2):** a `*/` sequence ANYWHERE inside a `/* … */` comment closes
+  it early → postcss "Unclosed block (n:n)" build fail pointing at the next `{`. Bit me writing the
+  literal `--seo-*/--green` in a token comment (the `*/` killed the comment, the rest became bad CSS).
+  Never put `*/` — or a glob like `--x-*/…` — in CSS comment prose. `next dev` may not surface it; `next build` does.
+- **NEVER run `npx next build` while `next dev` is running (S2 audit #2 — cost a confusing debug).** The
+  prod build overwrites the dev server's `.next`, so dev then serves SSR HTML that references dev JS chunks
+  which now 404 (`main-app.js`, `app-pages-internals.js`) → the page renders but **never hydrates**: looks
+  perfect in screenshots, but no interactivity (a hamburger that won't open, dead framer animations). Tell-tale:
+  404s on `/_next/static/chunks/*` in the dev log. Fix: kill dev → `rm -rf .next` → restart `npm run dev`.
+  For a prod-build check while iterating, STOP dev first; for small changes, trust dev's compile + screenshots.
+
+## Token / layout hygiene (S2)
+- **Tailwind silently drops UNDEFINED utilities** (no error). `rounded-circle` was used 9× but
+  `circle` wasn't in the config → all 9 rendered as squares. Verify a `rounded-*`/token key
+  exists in `tailwind.config.ts`; a fabricated semantic name fails silently and visibly.
+- **One shared content-width token across every full-width band** (`--bai-content: 1180px`, 40px
+  gutter) so content edges align vertically down the page — inconsistent max-widths read as
+  accidental. GOTCHA: a flex item with `margin:auto` won't stretch to its max-width (auto-margins
+  disable flex stretch) — add `width:100%`.
+- **`order`-swapped rows with asymmetric grid tracks size by POSITION, not element** — to keep
+  one element (a feature image) consistently larger across alternating left/right rows, MIRROR
+  `grid-template-columns` per direction (`.feat` vs `.feat.reverse`); verify by measuring EVERY
+  instance, not just row 1.
+- **Equal grid columns: use `minmax(0, 1fr)`, not `1fr`** (S2-cont). `1fr` = `minmax(auto,1fr)`, so
+  an item with wide min-content (an SVG chart, nowrap text) balloons its track and squeezes the rest
+  — the Finance card came out wider than its siblings. `minmax(0,1fr)` + `min-width:0` on the item =
+  truly equal columns. *(Gate-8 miss — designer caught it on review.)*
+- **Per-route width override via a scoped token** (S2-cont). To widen/narrow ONE route without
+  touching the shared nav stylesheet or other routes, override the content-width custom property on
+  that route's scope (`.v-cards .hero-screen { --bai-content: N }`) — the shared nav + hero inherit it.
+- **Content-width model (refined S2-cont):** a wide/full-bleed NAV over a CONTAINED ~1280 content
+  column (hero + sections + footer share one `--seo-content` token). Aligning ALL bands to the wide
+  header read too wide (bad line length, sparse grids). Full-bleed nav + contained content is the
+  standard pattern, NOT misalignment. → taste rule 20.
+
+## Mobile (S2)
+- **App-style split-pane** (fixed sidebar + independently-scrolling main, `h-screen
+  overflow-hidden`) MUST be gated to a desktop breakpoint; on mobile collapse to single-column
+  normal-scroll and hide/relocate the sidebar.
+- **A fixed-height box holding responsive text overlaps its absolute children when the text grows
+  on small screens** — bump the height (or drop content) at the breakpoint.
+- **N-up rows of labeled items need a mobile plan** (stack icon-over-label, or drop secondary
+  affordances like arrows).
+- **Click-to-scroll + scroll-spy fight** — add a short (~700ms) lock after a click so the spy
+  doesn't re-highlight mid-scroll; a sticky nav needs a matching scroll OFFSET (scrollIntoView
+  can't offset).
+- **Always screenshot mobile yourself** — can't eyeball it from the desktop live view.
+- **A content page's section-anchor nav needs a real mobile MENU** (S2-cont) — a hamburger → the
+  section links + CTA, never just `display:none` on the links (that strands the navigation). The
+  menu OVERLAYS content (`position:absolute` below the sticky bar with a shadow), it does NOT push
+  content down. CTAs go full-width on mobile for tap targets.
+
+## Components (S2)
+- **HeroNav = single source of truth** for the marketing/hero nav: one `<HeroNav/>` + one
+  `hero-nav.css` (imported by the component so styles travel with it); per-variant diffs exposed
+  as a token (`--nav-pad-y`). Showcased as a LIVE "Marketing nav" section in `/style-guide` (renders
+  the real component → can't drift). A component duplicated across variants is a DS smell → extract.
+
+## SEO homepage + brand primitives (S2-cont)
+- **`/seo` page** (`app/seo/page.tsx` + `components/seo/*` + `lib/seo-data.ts` + `styles/seo-home.css`,
+  ALL scoped `.v-seo`): a standalone content-rich, search-optimized homepage. Sections: nav · hero
+  (2×2 animated agents) · What-is (featured-snippet def) · chatbot/assistant/worker frame · 8-card
+  task hub (internal links) · 4 steps · FAQ accordion · CTA · footer. Reuses the legacy agent scenes
+  (their CSS DUPLICATED under `.v-seo` — scene classes can't cross route scopes; the cost of strict
+  per-route scoping).
+- **SEO mechanics:** page-level `metadata` (title/description) + semantic H1/H2 + **FAQPage JSON-LD**
+  rendered server-side in `page.tsx` from the SAME `FAQ` data as the visible accordion (can't drift)
+  — the PM's key lever (competitors have FAQ copy, no schema). FAQ answers stay in the DOM
+  (grid-rows 0fr→1fr animation) so they're crawlable.
+- **Two brand primitives, both SSOT components** (S2 audit #2): **`<Wordmark/>`** (`components/Wordmark.tsx`
+  + global `.bai-wordmark`): "BlueAI" in the full iris→cyan gradient (clip), one word, Bricolage 700 —
+  every nav + both footers + style guide. **`<Sparkle/>`** (`components/Sparkle.tsx`): the canonical lucide
+  "Sparkles" CTA icon — `size` prop OR `className="spark"` (CSS-sized). Was inlined in 6 files; now one
+  source, used by all 5 Download CTAs (`DownloadCta`/`HeroCta`/`HeroStage`/`SeoHero`/`SeoCta`). The scene
+  "generate" glyph (simpler, no accent marks — a DIFFERENT role) was intentionally NOT merged. Logo =
+  official `public/blueai-icon-RzIisCsb.png`. Both documented in `/style-guide` (Foundations type +
+  the "Download CTA" component card, which renders the REAL `<DownloadCta/>` under a `.bai-home` wrapper).
+  → taste rule 19, reasonings "brand primitives as SSOT".
+- **Root `/` = Screen Library index** (`app/page.tsx`): a light DS-styled directory linking every page
+  via full-page `<a>`. Replaced the redirect-to-style-guide; the style guide is now DS-only.
+- **Ambient backdrop** (`SeoBackdrop`): `position:fixed` layer behind content (content gets `z-index:1`).
+  Soft iris/cyan/blue orbs drift via framer `useScroll`+`useTransform` (each a different path →
+  recomposes per section) + a faint logo sparkle rotating ~720° across the scroll. On mobile it's
+  pinned top-right (left-half visible, big) as a slow gear. All gated on `useReducedMotion`. → taste rule 21.
+- **Scroll-reveal** (`useReveal`): one IntersectionObserver adds `is-in` to `[data-reveal]` (fade+rise
+  once, then unobserve); reduced-motion reveals everything immediately.
+
+## PM-supplement tokens (S1 — filled from the blueai-pm DS)
+- `accent` (`#1990FF` + `accent-hover`) — interactive primary for **app** surfaces (the
+  marketing site keeps the iris→cyan gradient). `bg-accent` / `text-accent`.
+- `status` group — `status-{success,warning,danger,info,scheduled,jobs}` each with a `-soft`
+  (badge bg) + `-ink` (badge text). Status badges = `rounded-sm` + soft bg + ink text. Shown
+  in `/style-guide` → Components.
+- Shadows: Tailwind defaults `shadow-sm/md/lg/xl` match PM's scale; modern's `float`/`overlay` are extras.
+- Future blueAI **app** components (badges/inputs/nav/chat bubbles/credits modal/overview cards)
+  + the Heroicons-outline icon set → spec in `design-source/blueai-pm/` (README + preview/ + ui_kits/webapp/).
+
+## DS audit + PM app-components incorporated (S1 audit)
+- **Radius scale (complete):** `rounded-badge 2 · card 8 · field 12 · chat 16 · credits 24 · pill 128 · circle` + `bubble-sent/recv`. (added chat/credits/badge in the audit.)
+- **Shadow scale:** `shadow-float · overlay · cta · cta-hover · brand-sm` (the brand-glow `cta`/`cta-hover` + the `cta-gradient` were inlined on every Download CTA → tokenized; the 4 hero/home stylesheets now reference `var(--bai-cta-gradient)` / `var(--bai-shadow-cta)`). Tailwind defaults `shadow-sm/md/lg/xl` also available.
+- **Badge system (3 shapes):** status chips (`rounded-badge`, soft fill, no border) · pill badges (`rounded-pill`, soft fill, outline on emphasis) · outline tags (`rounded-card` border-only) · credits gradient-border pill. See taste rule 12. Showcased in `/style-guide` → Status badges + Pill badges.
+- **`indigo` token** (`indigo` / `-soft` / `-ink`, PM #4F46E5) — PM's secondary interactive (cards, nav hover, overview icon bg). Used by the app-component sections.
+- **PM app-component sections** built into `/style-guide` (group "App components (PM)"): `components/style-guide/PmComponentsA.tsx` (Cards · Overview cards · Inputs & forms) + `PmComponentsB.tsx` (Navigation · Credits button/alerts/modal · Icons). These document the shipping web-app DS; the marketing site doesn't use them. The full webapp UI-kit *screens* remain the live product (not rebuilt).
+
+## Token hygiene
+- **Tokenisation TIERING (the operating rule — S2 audit #2):** "fully tokenised" ≠ "every hex is a
+  token." **Tier 1** — a literal equal to a DS-primitive value (iris/cyan/ink/accent) is a LEAK → use
+  the token. **Tier 2** — a color used on >1 surface → promote to a GLOBAL token. **Tier 3** — bespoke
+  scene-illustration colors (fake-chart fills `#c9d3ee`/`#aab9e6`, creator-pink `#c2418a`, success-ink
+  `#0f7a3b`, icon-tile tints) → stay LOCAL; promoting one-offs pollutes the DS. Tokenise design
+  *decisions*, not decoration — and STATE the Tier-3 boundary out loud, don't silently skip it.
+- **Marketing-surface palette is now GLOBAL** (`--bai-mkt-slate/blue/blue-2/green/green-wash` in
+  globals.css; S2 audit #2 — this SUPERSEDES the earlier "keep marketing locals in the section
+  stylesheets" guidance). It was duplicated identically across 7 files (`--bh-*`, `--seo-*`, the heroes'
+  `--slate-900`/`--green`) → Tier 2 → one source; per-file locals now alias it. `--bh-orange` folded
+  into `--bai-jobs` (same value). `--font-head`/`--font-mono` stay per-stylesheet locals — fonts, fine.
+- **Alpha washes now tokenised via rgb-channel tokens** (S2 audit #2 — frontier CLOSED). `rgba()` can't
+  take a solid `--bai-iris` token, so the RGB triple gets its own token: `--bai-iris-rgb: 123, 76, 255`
+  → `rgba(var(--bai-iris-rgb), α)`. The solid DERIVES from it too (`--bai-iris: rgb(var(--bai-iris-rgb))`)
+  → the numbers live in ONE place. Channel tokens: `--bai-{iris,cyan,glow}-rgb` (glow = #5F46FF brand
+  shadow) + `--bai-mkt-{blue,blue-2,green}-rgb`. All 7 stylesheets + globals swept. **Pattern to reuse:**
+  any color that appears BOTH solid and as an rgba wash → define the channel triple, derive both.
+- **Still raw, by stated boundary:** `.tsx` rgba in SVG `<stop stop-color>`, Tailwind-arbitrary values
+  (`shadow-[…rgba(…)]`), and one inline page-bg gradient — `var()` is unreliable in SVG/JS-driven values
+  and fragile in Tailwind arbitrary syntax. Tailwind `bg-iris/10` alpha modifiers also DON'T work (vars
+  aren't channel triples for Tailwind's opacity plugin) — use `bg-bai-wash` or explicit rgba.
+
+
+## blueai-desktop traps (2026-08-03 — the ACTIVE surface; everything above this heading is the dormant marketing site)
+
+- **A shared DOM node needs a permanent home, not a detach-and-remember.** Three elements on this surface are
+  MOVED between parents rather than rebuilt: `#baiSchedForm`, the single date/time picker, and the `+ New task`
+  row. Two real bugs came from getting this wrong: a bare `container.innerHTML = ''` DESTROYS a child another
+  function still cares about, and a bare `removeChild` ORPHANS it — a detached node with no live parent is
+  invisible to `getElementById` and nothing re-attaches it. The pattern that works: an always-attached hidden
+  parking element (`#baiDtPickerHome`, `#baiSchedAddHome`) and `appendChild` MOVES between two live parents, so
+  the node is never parentless. Any function that wipes a container must park first — and factor the parking
+  into one shared helper, so a future third wipe site fails loudly instead of silently.
+- **Editing a CSS comment can silently delete the rule beneath it.** The existing gotcha entry above covers a
+  stray `*/` while *authoring* comment prose. It bit again on 2026-08-03 in a different shape: two comment
+  EDITS each left the original terminator in place, orphaning a `*/`, which dropped `.bai-schedform` entirely
+  and made a `position: sticky` footer compute `static`. The failure is invisible in the source and produces a
+  plausible-looking page. **Verification step, now standard:** after any comment edit, assert `/*` count ==
+  `*/` count, zero orphan terminators by a depth scan, and `{` count == `}` count. It is three lines of Python
+  and it catches a class of break that no screenshot will show you.
+- **Assert computed values, never appearance.** The broken-stylesheet bug above was caught because a probe read
+  `getComputedStyle(el).position` and got `static`. The screenshots taken in the same minute looked fine and
+  were invalid. Any harness that renders something is not thereby a harness that renders the RIGHT thing.
+- **The screenshot harness has two traps of its own, both of which produce clean-looking lies.** (1) `.drawer`
+  is `translateX`'d off-screen until `.open`, and it does not boot until the real trigger runs — an element
+  screenshot of it before that captures the BlueStacks mock sitting behind it, which reads as a pass. Open it
+  by clicking `.bs-window`, and use Playwright's `reducedMotion: 'reduce'` so the boot animation is skipped
+  rather than caught mid-assembly. (2) Forcing the drawer's `height` inline makes the element taller than the
+  canvas inside it, so the demo scene shows through the bottom — which reads as a broken light theme. Pin the
+  WIDTH only.
+- **Know which element is the scroll container before scripting against it.** Removing the form's `.bai-newitem`
+  wrapper moved scrolling from the form to `.bai-subpane-body`; a harness still setting `scrollTop` on the form
+  silently did nothing and produced screenshots of the wrong region.
+
+- **`#scaler` transforms the whole app, so `getBoundingClientRect()` and `offsetWidth/offsetHeight` live in
+  DIFFERENT coordinate spaces — and mixing them is a category error, not a rounding error. CONFIRMED TWICE
+  (2026-08-10/11), which is why this is a KB entry and not a decision row.** The app is rendered inside a
+  `#scaler` element carrying a CSS `transform: scale()` (compact width measures ~0.33; wide is 1.0). Rects are
+  therefore in SCALED viewport pixels, while everything you WRITE (`style.left/top/width`) and everything
+  `offset*` reports are in UNSCALED local pixels — the space the design is actually authored in.
+  - *Instance 1 — writing a scaled value as a local one:* `placeFloating()` positioned the date picker from
+    raw rect deltas. At a 620px-tall window (scale ~0.92) the picker came out 279px wide against a 305px
+    field and overlapped it by 12px; at 520px wide (scale ~0.33) it came out 36px wide against a 110px field.
+    Fix: compute `s = clip.getBoundingClientRect().width / clip.offsetWidth` once, divide every measured
+    delta by it before writing.
+  - *Instance 2 — comparing a scaled measurement against a px threshold:* `icon-target-audit.js`'s first run
+    measured control boxes with rects and compared them against a 22px floor, reporting **54 false failures**
+    at compact width on controls it had just PASSED at wide width. Fix: measure with `offsetWidth/offsetHeight`,
+    which are immune to ancestor transforms, so the numbers are directly comparable to the tokens.
+  - **The rule:** any px number that will be compared to a token, or written back as a style value, must come
+    from `offset*` or be divided by the measured scale first. Rects are only safe for comparing two rects to
+    each other. A harness that reports a clean pass at wide width and garbage at compact width is showing you
+    this trap, not a responsive bug.
+- **`function f(x, d) { ... d || DEFAULT }` cannot express a deliberate zero — and this codebase uses that
+  convention.** `startFlow(name, initialDelay)` runs `setTimeout(runStep, initialDelay || 800)`, so calling
+  `startFlow('plan', 0)` to mean "start immediately" silently gets 800ms instead. It surfaced as a reply that
+  read as hanging (the caller had already spent its own thinking beat). **Before passing 0 / '' / false to any
+  helper in this file, grep the helper for `||` in its parameter handling** — and when the intent really is
+  "no delay," pass a small non-zero value (120) with a comment saying why it isn't 0, because 0 is the value
+  that looks correct and behaves wrongly.
+  **WIDENED 2026-08-11 — the mechanism is bigger than `||`, and DECLARATION ORDER is the same bug.** This
+  file's inline script is one long IIFE, so `var` declarations hoist their NAME to the top and leave the
+  ASSIGNMENT where it was written. `var bsInstalled = true, baiInstalled = true` sat ~117 lines *below*
+  `renderPreviewRows()`, which reads both — so the install checkboxes rendered UNCHECKED on a machine where
+  both are installed. Nothing threw: `undefined` is falsy, and **falsy is indistinguishable from a deliberate
+  `false` at the point of use**, which is why the output was a plausible wrong state rather than an error.
+  That is the same root as `d || DEFAULT`: a value that cannot express its own absence, so absence
+  impersonates a legitimate value. **Two habits close both:** in a file this long, declare state ABOVE its
+  first reader and not next to its conceptual neighbours (mine sat with the scene mechanics, which read as
+  the natural home and was wrong); and when a falsy value is meaningful, test `=== undefined` / `!= null`
+  rather than truthiness. Grep target for the order problem: any `var` whose name appears earlier in the file
+  than its own declaration line.
+- **A throw inside `requestAnimationFrame` (or any async callback) surfaces NOWHERE in the UI — the animation
+  just stops mid-way and looks finished.** `bsInstallCard(app)` shipped without its parameter while
+  referencing `app`, so the rAF tick threw `ReferenceError` on the frame that completes the install: the
+  progress card reached "Getting ready 100%", stopped, and the entire scene payoff (the player mounting and
+  cycling its frames) never ran. On screen it read as a *finished* install. Nothing in the DOM, no visible
+  error state, no failed assertion — **only the console had it.** The same applies to `setTimeout`,
+  `addEventListener`, promise bodies and `IntersectionObserver`: a throw kills that callback silently and
+  leaves whatever it had already done on screen, which is the most convincing possible wrong state.
+  **So when a scripted sequence stops part-way, read the console BEFORE re-reading the code** — the failure
+  mode of "it ran and then just stopped" is almost always a thrown callback, and re-reading your own logic
+  is exactly the search that cannot find it.
+- **A harness that returns an empty result set is reporting a broken harness, not a clean surface — assert
+  liveness explicitly or a silent zero reads as a pass.** Repeatedly this session: an icon census returned
+  zero controls for 6 consecutive contexts because an `Escape` keypress had closed the drawer (every later
+  `offsetParent` was null); a calendar probe compared two EMPTY arrays and reported "no content shift"; a
+  settings-dropdown probe measured a row that was scrolled out of view and reported every item unreachable.
+  All three produced confident, wrong conclusions. **The fixes, now standard in any harness here:** (1) after
+  each navigation step, assert the app is actually visible (`#baiUi.show` + a non-trivial height) and record
+  a FAILURE, never a skip, if not; (2) assert the collection you are about to compare is non-empty before
+  drawing any conclusion from it; (3) `scrollIntoView` before measuring anything you reached programmatically.
+  Related to *"assert computed values, never appearance"* above — that one is about screenshots lying; this
+  one is about an empty measurement lying, which is worse, because zero findings reads as good news.
