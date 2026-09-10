@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>onBlue: Design Options</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700;800&family=Cascadia+Code:wght@400;600;700&display=swap">
+<style>
+:root {
+  --ink: #23262c; --dim: #565a63; --mint: #0f9d58; --primary: #2e3138; --accent: #2f6dff;
+  --canvas: #fafafa; --sur: #ffffff; --line: #e6e7ea; --line-2: #d8dade;
+  --ink-3: #71757e; --ink-4: #9a9da6;
+  --mono: "Cascadia Code", Consolas, ui-monospace, monospace;
+}
+html, body { margin: 0; background: var(--canvas); color: var(--ink); font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+* { box-sizing: border-box; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 9vh 1.5rem 4rem; }
+.onb-wordmark { font-family: 'Space Grotesk', sans-serif; font-weight: 800; letter-spacing: -0.03em; color: #2f6dff; font-size: 1.4rem; }
+.onb-wordmark .on { color: var(--ink); }
+.eyebrow { font-family: var(--mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); margin: 2.2rem 0 0.5rem; }
+h1 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.9rem, 4vw, 2.7rem); font-weight: 800; letter-spacing: -0.02em; margin: 0 0 0.6rem; }
+.sub { color: var(--dim); font-size: 1.02rem; line-height: 1.65; margin: 0 0 2.6rem; max-width: 56ch; }
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 720px) { .cards { grid-template-columns: 1fr; } }
+a.card { display: block; background: var(--sur); border: 1px solid var(--line-2); border-radius: 20px; padding: 26px 26px 24px; text-decoration: none; color: inherit; transition: border-color .15s, transform .15s, box-shadow .15s; position: relative; }
+a.card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 18px 44px -18px rgba(47,109,255,0.28); }
+.card .n { font-family: var(--mono); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+.card h2 { font-family: 'Space Grotesk', sans-serif; font-size: 1.35rem; font-weight: 700; margin: 0.5rem 0 0.45rem; letter-spacing: -0.01em; }
+.card p { margin: 0; color: var(--dim); font-size: 0.92rem; line-height: 1.6; }
+.card .go { display: inline-flex; align-items: center; gap: 7px; margin-top: 18px; font-weight: 700; font-size: 0.88rem; color: var(--accent); }
+.wip { position: absolute; top: 18px; right: 18px; font-family: var(--mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #a15c00; background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.35); border-radius: 999px; padding: 4px 10px; }
+.foot { margin-top: 3rem; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em; color: var(--ink-4); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="onb-wordmark"><span class="on">on</span>Blue</span>
+  <p class="eyebrow">Internal · design options</p>
+  <h1>The partner site, two ways</h1>
+  <p class="sub">Two explorations of the same journey. Same light system, same copy where it matters, different front door. Pick one to walk through it.</p>
+  <div class="cards">
+    <a class="card" href="option-1.html">
+      <span class="n">Option 1</span>
+      <h2>Talk to the worker</h2>
+      <p>The current landing, with a chat terminal as the front door. Your future worker interviews you and files its own application.</p>
+      <span class="go">Open option 1
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+      </span>
+    </a>
+    <a class="card" href="option-2.html">
+      <span class="wip">WIP</span>
+      <span class="n">Option 2</span>
+      <h2>The robot</h2>
+      <p>The same homepage copy with a new protagonist: a friendly robot you can watch finding work, doing it, and getting paid.</p>
+      <span class="go">Open option 2
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+      </span>
+    </a>
+  </div>
+  <p class="foot">onBlue Partners · mocks, September 2026</p>
+</div>
+</body>
+</html>
