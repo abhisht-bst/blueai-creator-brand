@@ -537,7 +537,7 @@ textarea.field { min-height: 82px; resize: vertical; font-family: Inter, sans-se
             <div class="scr-head">
               <span class="card-brand">
                 <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z" fill="#2F6DFF"/></svg>
-                onBlue
+                BlueAI
               </span>
               <span class="scr-status"><span class="dot"></span> Working</span>
             </div>
@@ -548,7 +548,7 @@ textarea.field { min-height: 82px; resize: vertical; font-family: Inter, sans-se
         </div>
         <div class="hero-copy">
           <h1 class="rv d1">Own an AI<svg class="h1-bot" viewBox="46 4 168 164" aria-hidden="true"><rect x="52" y="24" width="156" height="140" rx="62" fill="#f1efe9" stroke="#ddd9d1" stroke-width="4"/><line x1="130" y1="24" x2="130" y2="12" stroke="#d8d4cb" stroke-width="6" stroke-linecap="round"/><circle cx="130" cy="9" r="8" fill="#2f6dff"/><circle cx="52" cy="94" r="10" fill="rgba(47,109,255,0.35)"/><circle cx="208" cy="94" r="10" fill="rgba(47,109,255,0.35)"/><rect x="78" y="56" width="104" height="72" rx="32" fill="#eaf1ff"/><rect x="103" y="76" width="13" height="30" rx="6.5" fill="#2f6dff"/><rect x="144" y="76" width="13" height="30" rx="6.5" fill="#2f6dff"/></svg>that <span class="grad">works for you</span></h1>
-          <p class="sub rv d2">onBlue is an AI worker you own.<br>It finds real work, completes it, and pays you.</p>
+          <p class="sub rv d2">BlueAI is an AI agent you own.<br>It finds real work, completes it, and pays you.</p>
           <div class="rv d3">
             <button class="btn" type="button" onclick="startWiz()">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg>
@@ -582,7 +582,7 @@ textarea.field { min-height: 82px; resize: vertical; font-family: Inter, sans-se
       <div class="steps">
         <div class="step crx-reveal" style="--i:0"><span class="n">01</span><h3>Apply</h3><p>Tell us about yourself and the PC or Mac it will run on.</p></div>
         <div class="step crx-reveal" style="--i:1"><span class="n">02</span><h3>Get accepted</h3><p>We review every application and email you when your worker is ready.</p></div>
-        <div class="step crx-reveal" style="--i:2"><span class="n">03</span><h3>Deploy it</h3><p>Install onBlue on your machine and sign in. That's the whole setup.</p></div>
+        <div class="step crx-reveal" style="--i:2"><span class="n">03</span><h3>Deploy it</h3><p>Install BlueAI on your machine and sign in. That's the whole setup.</p></div>
         <div class="step crx-reveal" style="--i:3"><span class="n">04</span><h3>Collect</h3><p>You approve each campaign, your worker completes it, and you collect $30 every month via PayPal.</p></div>
       </div>
     </section>
@@ -609,7 +609,7 @@ textarea.field { min-height: 82px; resize: vertical; font-family: Inter, sans-se
             <button type="button" class="crx-foot-logo" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
               <span class="onb-wordmark"><span class="on">on</span>Blue</span>
             </button>
-            <p>onBlue is an AI worker you own. It finds real work, completes it, and pays you every month.</p>
+            <p>BlueAI is an AI agent you own. It finds real work, completes it, and pays you every month.</p>
             <p class="crx-foot-legal"><a href="https://blueai-screen-library.vercel.app/onblue/terms" target="_blank" rel="noreferrer">Terms and Privacy</a></p>
           </div>
           <div class="crx-foot-top-col">
@@ -640,7 +640,7 @@ textarea.field { min-height: 82px; resize: vertical; font-family: Inter, sans-se
     <div class="apply-wrap">
       <section class="crx-apply" id="apply-col">
         <div class="crx-apply-col">
-          <h1>Apply to onBlue.</h1>
+          <h1>Apply to BlueAI.</h1>
           <p class="sub">One short application. We review every one and email you when your access is approved.</p>
           <div class="apply-stage">
             <div class="robot-wrap wbot" id="wbot" aria-hidden="true">
@@ -1166,9 +1166,9 @@ function introRow(icon, body) {
 }
 function stepBody() {
   if (step === 0) {
-    return introRow(ICONS.monitor, 'Once accepted, we’ll email you a download link. Set up onBlue on your PC.') +
-      introRow(ICONS.clock, 'onBlue completes campaigns and tasks on your YouTube account. Each takes a few minutes.') +
-      introRow(ICONS.cadence, 'All you do: run onBlue on at least <b>20 days</b> each month.') +
+    return introRow(ICONS.monitor, 'Once accepted, we’ll email you a download link. Set up BlueAI on your PC.') +
+      introRow(ICONS.clock, 'BlueAI completes campaigns and tasks on your YouTube account. Each takes a few minutes.') +
+      introRow(ICONS.cadence, 'All you do: run BlueAI on at least <b>20 days</b> each month.') +
       introRow(ICONS.wallet, 'You earn <b>$30 every month</b>, paid via PayPal.') +
       introRow(ICONS.doc, 'Applying means you accept the <a class="crx-legal-link" href="https://blueai-screen-library.vercel.app/onblue/terms" target="_blank" rel="noopener">Terms of Use</a>.');
   }
@@ -1197,7 +1197,7 @@ function stepBody() {
     return choiceGroup({ key: 'pcHours', railId: 'p-hours', name: 'apply-pc-hours', label: 'How many hours a day is your PC on and connected to the internet?', variant: 'chips', options: [
         { value: 'Under 2 hours' }, { value: '2-5 hours' }, { value: '5-10 hours' }, { value: 'Basically always on' }] }) +
       '<div class="crx-qgap">' +
-      choiceGroup({ key: 'runDays', railId: 'p-days', name: 'apply-run-days', label: 'How many days a week could you run onBlue?', variant: 'chips', options: [
+      choiceGroup({ key: 'runDays', railId: 'p-days', name: 'apply-run-days', label: 'How many days a week could you run BlueAI?', variant: 'chips', options: [
         { value: '1-2 days' }, { value: '3-4 days' }, { value: '5-6 days' }, { value: 'Every day' }] }) + '</div>' +
       '<label class="crx-ctl crx-qgap"><span class="crx-label">Have you earned money online before? What did you try and how did it go?</span>' +
       '<textarea class="crx-field crx-gap-label" rows="3" oninput="D.earnedBefore=this.value">' + D.earnedBefore + '</textarea>' +
@@ -1207,7 +1207,7 @@ function stepBody() {
   return choiceGroup({ key: 'hasPaypal', railId: 'p-pay', name: 'apply-paypal', label: 'Do you have a PayPal account?', hint: 'Payouts go out via PayPal.', variant: 'chips', options: [
       { value: 'Yes', icon: ICONS.yesS, tone: 'ok' }, { value: 'No', icon: ICONS.noS, tone: 'danger', rail: 'Not yet' }] }) +
     '<div class="crx-qgap-tight">' +
-    choiceGroup({ key: 'fullRun', railId: 'p-run', name: 'apply-full-run', label: 'Running onBlue only takes a few minutes a day, but this is a long-term commitment. Are you in for the long run?', variant: 'chips', tight: true, options: [
+    choiceGroup({ key: 'fullRun', railId: 'p-run', name: 'apply-full-run', label: 'Running BlueAI only takes a few minutes a day, but this is a long-term commitment. Are you in for the long run?', variant: 'chips', tight: true, options: [
       { value: 'Yes', tone: 'ok' }, { value: 'Not sure' }, { value: 'No', tone: 'danger' }] }) + '</div>' +
     '<label class="crx-ctl crx-qgap-min"><span class="crx-label">What email should we contact you on?</span>' +
     '<input type="email" class="crx-field crx-gap-label" value="' + D.email.replace(/"/g, '&quot;') + '" oninput="D.email=this.value" onblur="if(D.email.trim())fillRail(\'p-mail\',D.email.trim())">' +

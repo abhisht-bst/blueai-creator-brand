@@ -270,7 +270,7 @@ body.crx-lock { overflow: hidden; }
       <canvas class="crx-rain" id="rain" aria-hidden="true"></canvas>
 
       <h1 class="rv d1">Own an AI that<br><span class="grad">works for you</span></h1>
-      <p class="sub rv d2">onBlue is an AI worker you own.<br>It finds real work, completes it, and pays you.</p>
+      <p class="sub rv d2">BlueAI is an AI agent you own.<br>It finds real work, completes it, and pays you.</p>
 
       <div class="rv d3">
         <div class="chatbar" onclick="openChat()" role="button" tabindex="0">
@@ -303,7 +303,7 @@ body.crx-lock { overflow: hidden; }
               <div class="scr-head">
                 <span class="scr-brand">
                   <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z" fill="#2F6DFF"/></svg>
-                  onBlue
+                  BlueAI
                 </span>
                 <span class="scr-status"><span class="dot"></span> Working</span>
               </div>
@@ -337,7 +337,7 @@ body.crx-lock { overflow: hidden; }
       <div class="steps">
         <div class="step crx-reveal" style="--i:0"><span class="n">01</span><h3>Apply</h3><p>Tell us about yourself and the PC or Mac it will run on.</p></div>
         <div class="step crx-reveal" style="--i:1"><span class="n">02</span><h3>Get accepted</h3><p>We review every application and email you when your worker is ready.</p></div>
-        <div class="step crx-reveal" style="--i:2"><span class="n">03</span><h3>Deploy it</h3><p>Install onBlue on your machine and sign in. That's the whole setup.</p></div>
+        <div class="step crx-reveal" style="--i:2"><span class="n">03</span><h3>Deploy it</h3><p>Install BlueAI on your machine and sign in. That's the whole setup.</p></div>
         <div class="step crx-reveal" style="--i:3"><span class="n">04</span><h3>Collect</h3><p>You approve each campaign, your worker completes it, and you collect $30 every month via PayPal.</p></div>
       </div>
     </section>
@@ -364,7 +364,7 @@ body.crx-lock { overflow: hidden; }
             <button type="button" class="crx-foot-logo" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
               <span class="onb-wordmark"><span class="on">on</span>Blue</span>
             </button>
-            <p>onBlue is an AI worker you own. It finds real work, completes it, and pays you every month.</p>
+            <p>BlueAI is an AI agent you own. It finds real work, completes it, and pays you every month.</p>
             <p class="crx-foot-legal"><a href="https://blueai-screen-library.vercel.app/onblue/terms" target="_blank" rel="noreferrer">Terms and Privacy</a></p>
           </div>
           <div class="crx-foot-top-col">
@@ -389,7 +389,7 @@ body.crx-lock { overflow: hidden; }
   <!-- the worker terminal: opens as its own screen -->
   <div id="term" role="dialog" aria-label="Worker interview">
     <div class="term-bar">
-      <span class="term-title">on<b>blue</b> ~ worker interview</span>
+      <span class="term-title">blue<b>ai</b> ~ worker interview</span>
       <span class="term-st"><span class="dot"></span> On shift</span>
       <button class="term-exit" onclick="closeChat()">exit</button>
     </div>
@@ -826,7 +826,7 @@ const steps = {
       chips([["Under 2 hours", 'q5'], ["2-5 hours", 'q5'], ["5-10 hours", 'q5'], ["Basically always on", 'q5']]));
   },
   q5() {
-    workerSay("How many days a week could you run onBlue?", () =>
+    workerSay("How many days a week could you run BlueAI?", () =>
       chips([["1-2 days", 'q6'], ["3-4 days", 'q6'], ["5-6 days", 'q6'], ["Every day", 'q6']]));
   },
   q6() {
@@ -843,7 +843,7 @@ const steps = {
       chips([["Yes", 'q8'], ["No", 'q8']]));
   },
   q8() {
-    workerSay("Running onBlue only takes a few minutes a day, but this is a long-term commitment. Are you in for the long run?", () =>
+    workerSay("Running BlueAI only takes a few minutes a day, but this is a long-term commitment. Are you in for the long run?", () =>
       chips([["Yes", 'q9'], ["Not sure", 'q9'], ["No", 'q9']]));
   },
   q9() {
