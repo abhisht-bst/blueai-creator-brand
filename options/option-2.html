@@ -1226,8 +1226,7 @@ function render() {
       '<span class="crx-confirm-tick"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 6.5"/></svg></span>' +
       '<h2>Thanks for applying.</h2>' +
       '<p>You’re on the waitlist. We review every application in detail, so this can take some time. We’ll email <b>' + D.email + '</b> the moment your access is approved.</p>' +
-      '</div></div></div>' +
-      '<p style="text-align:center;margin-top:1.2rem"><button class="crx-btn-quiet" onclick="accepted()">Preview: what acceptance looks like</button></p>';
+      '</div></div></div>';
     document.getElementById('wiz').scrollTop = 0;
     return;
   }
@@ -1255,31 +1254,6 @@ function advance() {
   submitted = true;
   render();
 }
-function accepted() {
-  wSet(null); wHop();
-  const slot = document.getElementById('apply');
-  slot.innerHTML =
-    '<div class="crx-panel" style="position:relative;overflow:hidden" id="accept-card">' +
-    '<div class="state-icon st-ok">&#10003;</div><h2 style="font-family:\'Space Grotesk\',sans-serif;margin:0 0 4px">You’re in.</h2>' +
-    '<div class="offer-wage">$30<small> / month, via PayPal</small></div>' +
-    '<p class="why" style="margin:10px 0 0">Three steps and your worker is earning.</p>' +
-    '<ul class="wtl"><li class="now">Download onBlue for PC or Mac</li><li>Sign in with this account</li><li>Approve your first campaign</li></ul>' +
-    '<br><button class="btn">Download onBlue</button></div>';
-  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const cardEl = document.getElementById('accept-card');
-    for (let i = 0; i < 7; i++) {
-      const sp = document.createElement('span');
-      sp.className = 'spark'; sp.textContent = '✦';
-      sp.style.left = (12 + Math.random() * 76) + '%';
-      sp.style.top = (30 + Math.random() * 40) + '%';
-      sp.style.animationDelay = (Math.random() * .5) + 's';
-      cardEl.appendChild(sp);
-      setTimeout(() => sp.remove(), 2400);
-    }
-    setTimeout(wHop, 1200);
-  }
-}
-
 /* ════ robot reactions (this flow's own): eyes follow the task loop's beats ════ */
 (function robotFx() {
   const robot = document.getElementById('robot');
