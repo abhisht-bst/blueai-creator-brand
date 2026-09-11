@@ -139,7 +139,7 @@ body.crx-lock { overflow: hidden; }
    blue capsule eyes only (no mouth), eyes morph per work state, one blue for accents. ── */
 /* split hero: scene left, copy right, everything in fold one */
 .crx main { padding: calc(66px + 0.5rem) 1.5rem 2rem; }
-.crx .hero-split { display: grid; grid-template-columns: 1.05fr 1fr; gap: 2.5rem; align-items: center; min-height: min(700px, calc(100vh - 100px)); position: relative; z-index: 1; text-align: left; }
+.crx .hero-split { display: grid; grid-template-columns: 1.05fr 1fr; gap: 5.5rem; align-items: center; min-height: min(700px, calc(100vh - 100px)); position: relative; z-index: 1; text-align: left; }
 .crx .hero-copy h1 { font-size: clamp(2.1rem, 3.6vw, 3.1rem); margin: 0 0 1.2rem; max-width: none; text-align: left; }
 .crx .hero-copy .sub { margin: 0 0 2rem; text-align: left; max-width: 46ch; }
 .crx .hero-copy .hero-signin { text-align: left; }
@@ -193,6 +193,224 @@ body.crx-lock { overflow: hidden; }
   .crx .robot-wrap, .crx .workcard, .crx .rb-shadow, .crx .rb-head-g, .crx .h1-bot { animation: none; }
 }
 
+/* ── the application (this flow's own): full-screen takeover, robot as the applicant ── */
+#landing { transition: opacity .4s, transform .4s; }
+#landing.gone { opacity: 0; transform: scale(.985); pointer-events: none; }
+#wiz { display: none; position: fixed; inset: 0; background: var(--canvas); z-index: 90; overflow-y: auto; opacity: 0; }
+#wiz.on { display: block; animation: wiz-in .4s ease forwards; }
+@keyframes wiz-in { from { opacity: 0; transform: scale(1.012); } to { opacity: 1; transform: none; } }
+.wiz-bar { position: sticky; top: 0; display: flex; justify-content: space-between; align-items: center; padding: 10px 18px; background: var(--sur); border-bottom: 1px solid var(--line); z-index: 5; }
+.wiz-exit { font: 500 0.8rem Inter, sans-serif; color: var(--dim); background: var(--sur-2); border: 1px solid var(--line-2); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.panel { max-width: 840px; margin: 6vh auto 8vh; display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; align-items: start; padding: 0 20px; }
+.qcard { background: var(--sur); border: 1px solid var(--line-2); border-radius: 20px; padding: 30px 30px 26px; box-shadow: 0 24px 60px -30px rgba(35,38,44,0.22); position: relative; overflow: hidden; text-align: left; }
+.qinner { animation: stepin .32s ease-out; }
+@keyframes stepin { from { opacity: 0; transform: translateX(16px); } }
+.prog { display: flex; gap: 5px; margin-bottom: 22px; }
+.prog i { height: 4px; flex: 1; border-radius: 4px; background: var(--track); transition: background .3s; }
+.prog i.f { background: var(--accent); }
+.stepno { font-family: var(--mono); font-size: 0.66rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+.qcard h2 { font-family: 'Space Grotesk', sans-serif; font-size: 1.45rem; font-weight: 700; letter-spacing: -0.01em; margin: 8px 0 6px; color: var(--ink); }
+.why { font-size: 0.84rem; color: var(--dim); margin: 0 0 20px; }
+.opts { display: flex; flex-direction: column; gap: 9px; }
+.opt { text-align: left; background: var(--sur-2); border: 1.5px solid var(--line-2); border-radius: 12px; padding: 13px 16px; font: 500 0.92rem Inter, sans-serif; color: var(--ink); cursor: pointer; transition: border-color .15s, background .15s; }
+.opt:hover { border-color: var(--accent); background: rgba(47,109,255,0.07); }
+.opts.two { flex-direction: row; flex-wrap: wrap; } .opts.two .opt { flex: 1 1 40%; text-align: center; }
+.opts.wrap { flex-direction: row; flex-wrap: wrap; } .opts.wrap .opt { flex: 0 1 auto; padding: 10px 16px; }
+.opt.sel { border-color: var(--accent); background: rgba(47,109,255,0.08); color: var(--accent); font-weight: 600; }
+.fq { margin: 20px 0 4px; font-size: 0.92rem; font-weight: 600; color: var(--ink); }
+.fq:first-of-type { margin-top: 16px; }
+.fhint { font-size: 0.78rem; color: var(--ink-3); margin: 0 0 10px; }
+.fq + .opts, .fq + .field, .fq + textarea { margin-top: 8px; }
+.ferr { font-size: 0.76rem; font-weight: 600; color: #d64545; margin: 10px 0 0; min-height: 15px; }
+.aside { font-size: 0.82rem; line-height: 1.55; color: var(--dim); background: var(--sur-2); border-radius: 10px; padding: 10px 13px; margin-top: 12px; }
+textarea.field { min-height: 82px; resize: vertical; font-family: Inter, sans-serif; }
+.agree-row { display: flex; gap: 10px; align-items: center; font-size: 0.9rem; color: var(--ink); margin: 14px 0 0; cursor: pointer; }
+.agree-row input { width: 18px; height: 18px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer; }
+.qcard .next { margin-top: 14px; }
+.field { width: 100%; border: 1.5px solid var(--line-2); border-radius: 12px; padding: 13px 15px; font: 400 0.92rem Inter, sans-serif; background: var(--canvas); margin-bottom: 10px; outline: none; color: var(--ink); }
+.field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47,109,255,0.22); }
+.next { background: var(--primary); color: #fff; border: 0; border-radius: 12px; padding: 13px 22px; font: 600 0.92rem Inter, sans-serif; cursor: pointer; }
+.whint { font-size: 0.76rem; color: var(--ink-3); margin-top: 12px; }
+.apply-wrap { max-width: 720px; margin: 5vh auto 9vh; padding: 0 20px; }
+.apply-stage { position: relative; }
+.apply-stage #apply { position: relative; }
+.apply-stage .crx-panel, .apply-stage .crx-band { position: relative; z-index: 2; }
+/* the robot peeks over the card's top right edge, body tucked behind it */
+.robot-wrap.wbot { position: absolute; left: auto; right: -34px; bottom: auto; top: -26px; width: 150px; margin: 0; z-index: 1; }
+@media (max-width: 700px) { .robot-wrap.wbot { width: 110px; right: 0; top: 22px; } }
+.profile { background: var(--sur); border: 1px solid var(--line); border-radius: 16px; padding: 18px; box-shadow: 0 20px 60px -30px rgba(35,38,44,0.2); text-align: left; }
+.p-head { display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.p-title { font-weight: 600; font-size: 0.85rem; color: var(--ink); }
+.p-title small { display: block; font-weight: 400; font-size: 0.7rem; color: var(--ink-3); }
+.p-row { display: flex; justify-content: space-between; gap: 10px; font-size: 0.8rem; padding: 9px 0; border-bottom: 1px dashed var(--line); }
+.p-row:last-of-type { border-bottom: 0; }
+.p-row .k { color: var(--ink-3); }
+.p-row .v { font-weight: 600; text-align: right; color: var(--ink); overflow-wrap: anywhere; }
+.p-row .v.empty { color: var(--line-2); font-weight: 400; }
+.p-row.flash { animation: rowflash .7s; }
+@keyframes rowflash { 30% { background: rgba(47,109,255,0.08); } }
+.sumline { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.sumline b { font-weight: 600; }
+.state-icon { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 14px; }
+.st-rev { background: rgba(47,109,255,0.1); color: var(--accent); }
+.st-ok { background: rgba(15,157,88,0.12); color: var(--mint); }
+.wtl { list-style: none; margin: 14px 0 0; padding: 0; font-size: 0.85rem; color: var(--dim); }
+.wtl li { padding: 5px 0 5px 22px; position: relative; }
+.wtl li::before { content: ""; position: absolute; left: 6px; top: 12px; width: 7px; height: 7px; border-radius: 50%; background: var(--line-2); }
+.wtl li.done::before { background: var(--mint); }
+.wtl li.now::before { background: var(--accent); animation: crx-pulse 1.4s infinite; }
+.wtl li.now { color: var(--ink); font-weight: 500; }
+.offer-wage { font-family: 'Space Grotesk', sans-serif; font-size: 2.2rem; font-weight: 700; margin: 4px 0 2px; color: var(--ink); }
+.offer-wage small { font-size: 0.85rem; color: var(--ink-3); font-weight: 400; font-family: Inter, sans-serif; }
+.spark { position: absolute; color: var(--accent); font-size: 13px; animation: sparkfly 1.6s ease-out forwards; pointer-events: none; }
+@keyframes sparkfly { from { opacity: 1; transform: translateY(0) scale(.7); } to { opacity: 0; transform: translateY(-90px) scale(1.3); } }
+@media (max-width: 840px) { .panel { grid-template-columns: 1fr; } .side { position: static; } }
+
+
+/* tokens the flow kit expects, light values */
+.crx { --ink-inverse: #23262c; --ink-on-accent: #fff; --sur-3: #f0f1f3; --sur-hover: #f2f3f5; --sur-strong: #e8e9ec; --line-3: #c3c6cc; --line-4: #a4a7af; --positive-wash: rgba(15,157,88,0.1); --positive-line: rgba(15,157,88,0.32); --danger: #ef4444; --danger-wash: #fee2e2; --sel-border: rgba(47,109,255,0.38); --sel-wash: rgba(47,109,255,0.07); --well: #ffffff; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+/* fit the apply section inside the takeover panel */
+#wiz .crx-apply { padding: 0; }
+#wiz .crx-apply-col { max-width: none; margin: 0; }
+#wiz .crx-apply h1, #wiz .crx-apply .sub { text-align: center; margin-left: auto; margin-right: auto; }
+
+/* == the flow kit, extracted from onblue.css == */
+.crx main,
+.crx .sleep,
+.crx .below,
+.crx .closer,
+.crx .crx-apply,
+.crx .crx-full,
+.crx .crx-dash,
+.crx .crx-foot { position: relative; z-index: 1; }
+.crx .crx-panel { background: var(--sur-2); border: 1px solid var(--line); border-radius: 16px; padding: 1.5rem; text-align: left; }
+.crx .crx-panel-title { font-family: 'Space Grotesk', 'SF Pro Display', Inter, sans-serif; font-weight: 700; font-size: 1.05rem; line-height: 1.3; color: var(--ink-inverse); margin: 0; text-wrap: balance; }
+.crx .crx-label { display: block; font-size: 0.8rem; font-weight: 650; color: var(--ink-inverse); }
+.crx .crx-hint { display: block; margin-top: 0.35rem; min-height: 15px; font-size: 0.72rem; line-height: 1.35; color: var(--ink-3); }
+.crx .crx-err { display: block; margin-top: 0.35rem; min-height: 15px; font-size: 0.72rem; font-weight: 600; line-height: 1.35; color: var(--danger); }
+.crx .crx-err:empty { visibility: hidden; }
+.crx .crx-field { display: block; width: 100%; font: inherit; font-size: 0.95rem; color: var(--ink-inverse); background: var(--well); border: 1px solid var(--line-2); border-radius: 9px; padding: 0.75rem 0.9rem; transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease; }
+.crx .crx-field::placeholder { color: var(--ink-4); }
+.crx .crx-field:hover { border-color: var(--line-4); }
+.crx .crx-field:focus { outline: none; border-color: var(--sel-border); box-shadow: 0 0 0 3px rgba(47, 109, 255, 0.22); }
+.crx .crx-field.err { border-color: var(--danger); }
+.crx .crx-field.err:focus { box-shadow: 0 0 0 3px var(--danger-wash); }
+.crx .crx-choice { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 44px; padding: 0.7rem 0.9rem; font: inherit; font-size: 0.85rem; font-weight: 500; color: var(--dim); background: var(--sur-2); border: 1px solid var(--line-2); border-radius: 9px; cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease; }
+.crx .crx-choice:hover { border-color: var(--line-4); background: var(--sur-3); color: var(--ink-inverse); }
+.crx .crx-choice:active { background: var(--sur-strong); }
+.crx .crx-choice.on { border-color: var(--sel-border); background: var(--sel-wash); color: var(--ink-inverse); font-weight: 650; }
+.crx .crx-choice.err { border-color: var(--danger); }
+.crx .crx-choice-card { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; height: 100%; padding: 0.9rem; font: inherit; text-align: left; color: var(--dim); background: var(--sur-2); border: 1px solid var(--line-2); border-radius: 14px; cursor: pointer; transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease; }
+.crx .crx-choice-card:hover { transform: translateY(-1px); border-color: var(--line-4); background: var(--sur-3); }
+.crx .crx-choice-card:active { transform: translateY(0); }
+.crx .crx-choice-card.on { border-color: var(--sel-border); background: var(--sel-wash); color: var(--ink-inverse); transform: none; }
+.crx .crx-choice-card.err { border-color: var(--danger); }
+.crx .crx-choice-card .crx-choice-ic { color: var(--ink-3); }
+.crx .crx-choice-card.on .crx-choice-ic { color: var(--accent); }
+.crx .crx-choice-card .crx-choice-name { font-size: 0.85rem; font-weight: 600; line-height: 1.3; }
+.crx .crx-choice-card .crx-choice-hint { font-size: 0.7rem; line-height: 1.35; color: var(--ink-3); }
+.crx .crx-choice-card .crx-choice-mark { position: absolute; right: 8px; top: 8px; display: none; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); color: var(--ink-on-accent); }
+.crx .crx-choice-card.on .crx-choice-mark { display: flex; }
+.crx .crx-choice-card.tone-ok .crx-choice-ic, .crx .crx-choice.tone-ok .crx-choice-ic { color: var(--mint); }
+.crx .crx-choice-card.tone-ok.on, .crx .crx-choice.tone-ok.on { border-color: var(--positive-line); background: var(--positive-wash); }
+.crx .crx-choice-card.tone-ok.on .crx-choice-mark { background: var(--mint); color: #05060f; }
+.crx .crx-choice-card.tone-danger .crx-choice-ic, .crx .crx-choice.tone-danger .crx-choice-ic { color: var(--danger); }
+.crx .crx-choice-card.tone-danger.on, .crx .crx-choice.tone-danger.on { border-color: rgba(255, 107, 122, 0.45); background: var(--danger-wash); }
+.crx .crx-choice-card.tone-danger.on .crx-choice-mark { background: var(--danger); }
+.crx .crx-choice-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+.crx .crx-choice-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.crx .crx-choice-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.crx .crx-check { display: flex; align-items: flex-start; gap: 0.7rem; padding: 0.9rem; cursor: pointer; text-align: left; font-size: 0.88rem; line-height: 1.55; color: var(--dim); background: var(--sur-2); border: 1px solid var(--line-2); border-radius: 14px; transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease; }
+.crx .crx-check:hover { border-color: var(--line-4); background: var(--sur-3); }
+.crx .crx-check.on { border-color: var(--sel-border); background: var(--sel-wash); color: var(--ink-inverse); }
+.crx .crx-check.err { border-color: var(--danger); }
+.crx .crx-check.subtle { background: none; border-color: transparent; padding: 0.25rem 0; }
+.crx .crx-check-box { flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 5px; border: 1px solid var(--line-4); background: var(--well); color: var(--ink-on-accent); transition: background 0.15s ease, border-color 0.15s ease; }
+.crx .crx-check.on .crx-check-box, .crx .crx-check-box.on { background: var(--accent); border-color: var(--accent); }
+.crx .crx-check.err .crx-check-box { border-color: var(--danger); }
+.crx .crx-btn-quiet { font: inherit; font-weight: 650; font-size: 0.95rem; color: var(--ink-inverse); background: none; border: 1px solid var(--line-3); border-radius: 999px; padding: 0.85rem 1.6rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease; }
+.crx .crx-btn-quiet:hover { border-color: var(--line-4); background: var(--sur-3); transform: translateY(-1px); }
+.crx .crx-btn-quiet:active { background: var(--sur-strong); transform: translateY(0); }
+.crx .crx-btn-quiet:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.crx .btn.btn-block, .crx .crx-btn-quiet.btn-block { display: flex; width: 100%; justify-content: center; }
+.crx .crx-rail { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+.crx .crx-rail-count { font-family: var(--mono); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.crx .crx-rail-segs { display: flex; gap: 4px; }
+.crx .crx-rail-seg { width: 16px; height: 4px; border-radius: 999px; background: var(--sur-strong); transition: background 0.25s ease; }
+.crx .crx-rail-seg.on { background: var(--primary); }
+.crx .crx-mile { display: flex; max-width: 400px; margin: 0 auto 1.5rem; padding: 0; list-style: none; }
+.crx .crx-mile-step { position: relative; flex: 1; text-align: center; }
+.crx .crx-mile-line { position: absolute; top: 13px; height: 2px; left: calc(-50% + 22px); right: calc(50% + 22px); background: var(--sur-strong); }
+.crx .crx-mile-step.done .crx-mile-line, .crx .crx-mile-step.current .crx-mile-line { background: var(--primary); }
+.crx .crx-mile-dot { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; font-size: 0.7rem; font-weight: 650; border: 1px solid var(--line-3); background: var(--sur); color: var(--ink-3); }
+.crx .crx-mile-step.current .crx-mile-dot { border-color: var(--sel-border); background: var(--sel-wash); color: var(--accent); box-shadow: 0 0 0 4px rgba(47, 109, 255, 0.12); }
+.crx .crx-mile-step.done .crx-mile-dot { border: none; background: var(--primary); color: var(--ink-on-accent); }
+.crx .crx-mile-label { display: block; margin-top: 0.4rem; font-size: 0.7rem; font-weight: 500; color: var(--ink-3); }
+.crx .crx-mile-step.current .crx-mile-label { color: var(--ink-inverse); font-weight: 600; }
+.crx .crx-intro-row { display: flex; align-items: center; gap: 0.8rem; text-align: left; }
+.crx .crx-intro-row + .crx-intro-row { margin-top: 1.1rem; }
+.crx .crx-intro-row .crx-intro-ic { flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: var(--sel-wash); color: var(--accent); }
+.crx .crx-intro-row .crx-intro-body { font-size: 0.95rem; line-height: 1.55; color: var(--dim); }
+.crx .crx-intro-row .crx-intro-body b { color: var(--ink-inverse); font-weight: 650; }
+.crx .crx-field:focus-visible,
+.crx .crx-choice:focus-visible,
+.crx .crx-choice-card:focus-visible,
+.crx .crx-check:focus-visible,
+.crx .crx-toggler-row:focus-visible,
+.crx .crx-toggler.fab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.crx input.sr-only:focus-visible + .crx-choice,
+.crx input.sr-only:focus-visible + .crx-choice-card,
+.crx input.sr-only:focus-visible + .crx-check { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 880px) { .crx .crx-panel { padding: 1.1rem 1rem; } }
+@media (max-width: 880px) { .crx .crx-choice-grid, .crx .crx-choice-grid.cols-3 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .crx .crx-choice-grid, .crx .crx-choice-grid.cols-3 { grid-template-columns: 1fr; } }
+.crx .crx-form-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.crx .crx-step-body { margin-top: 1.75rem; min-height: 400px; }
+.crx .crx-step-body.intro { min-height: 0; }
+.crx .crx-form-foot { display: flex; align-items: center; gap: 0.8rem; margin-top: 1.75rem; }
+.crx .crx-grow { flex: 1 1 auto; min-width: 0; }
+.crx .crx-form-foot .crx-btn-quiet,
+.crx .crx-form-foot .crx-grow { flex: 1 1 0; min-width: 0; }
+.crx .crx-confirm { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.crx .crx-apply-form > .crx-band,
+.crx .crx-full > .crx-band { min-height: 578px; display: flex; flex-direction: column; justify-content: center; }
+.crx .crx-confirm h2 { font-family: 'Space Grotesk', 'SF Pro Display', Inter, sans-serif; font-weight: 700; font-size: 1.6rem; line-height: 1.3; margin: 1.2rem 0 0; text-wrap: balance; }
+.crx .crx-confirm p { max-width: 44ch; margin: 0.7rem auto 0; font-size: 1rem; line-height: 1.6; }
+.crx .crx-confirm-tick { display: inline-flex; align-items: center; justify-content: center; width: 58px; height: 58px; border-radius: 50%; background: var(--positive-wash); color: var(--mint); }
+.crx .crx-qgap { margin-top: 1.75rem; }
+.crx .crx-qgap-tight { margin-top: 1.25rem; }
+.crx .crx-qgap-min { margin-top: 0.5rem; }
+.crx .crx-ctl { display: block; }
+.crx .crx-ctl.span-last { grid-column: 1 / -1; }
+.crx .crx-choice-grid.cols-3 .crx-ctl.span-last { grid-column: auto; }
+.crx .crx-opts { margin-top: 0.6rem; }
+.crx .crx-opts.tight { margin-top: 0.25rem; }
+.crx .crx-gap-label { margin-top: 0.35rem; }
+.crx .crx-fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.crx .crx-aside { margin-bottom: 0; padding: 0.75rem 0.9rem; font-size: 0.85rem; line-height: 1.55; color: var(--dim); background: var(--sur-2); border: 1px solid var(--line); border-radius: 9px; }
+.crx .crx-label-opt { color: var(--ink-3); font-weight: 400; }
+.crx .crx-earn-steps .crx-intro-row + .crx-intro-row { margin-top: 0; }
+.crx .crx-cash-head .crx-panel-title { margin-right: auto; }
+.crx .crx-cash-field .crx-label { margin-bottom: 0.35rem; }
+.crx .crx-cash-mini .crx-check { font-size: 0.82rem; line-height: 1.45; }
+.crx .crx-apply { padding: 0.5rem 0 3rem; }
+.crx .crx-apply-col { max-width: 640px; margin: 0 auto; text-align: left; }
+.crx .crx-apply-col h1, .crx .crx-full h1 { font-size: clamp(2.1rem, 4.2vw, 3.05rem); max-width: 100%; }
+.crx .crx-apply-col h1, .crx .crx-apply-col .sub,
+.crx .crx-full h1, .crx .crx-full .sub { text-align: center; }
+.crx .crx-apply-form { margin-top: 2.2rem; }
+.crx .crx-prog-facts .crx-intro-row + .crx-intro-row { margin-top: 0.95rem; }
+.crx .crx-prog-foot .crx-grow { flex: 1 1 auto; justify-content: center; display: flex; }
+.crx .crx-proginfo > .crx-btn-quiet { margin-top: 1rem; }
+.crx .crx-apply-back { display: inline-flex; align-items: center; gap: 0.35rem; background: none; border: none; padding: 0; cursor: pointer; font: inherit; font-size: 0.85rem; font-weight: 600; color: var(--dim); margin-bottom: 1.2rem; transition: color 0.18s ease; }
+.crx .crx-apply-back:hover { color: var(--ink-inverse); }
+.crx .crx-apply-back:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.crx .crx-legal-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.crx .crx-legal-link:hover { color: var(--ink-inverse); }
+@media (max-width: 880px) { .crx .crx-choice-grid.cols-3 .crx-ctl.span-last { grid-column: 1 / -1; } }
+@media (max-width: 880px) { .crx .crx-form-foot .crx-btn-quiet { flex: 0 0 auto; } }
+@media (max-width: 880px) { .crx .crx-form-foot .crx-grow { flex: 1 1 auto; } }
 /* ── below the fold (ported from onblue.css light skin + HomeBelow/CtaBand/HomeFooter) ── */
 .crx .crx-reveal { opacity: 0; }
 .crx .crx-reveal.in { animation: crx-rise-in 0.8s cubic-bezier(0.22,1,0.36,1) both; animation-delay: calc(var(--i, 0) * 90ms); }
@@ -332,7 +550,7 @@ body.crx-lock { overflow: hidden; }
           <h1 class="rv d1">Own an AI<svg class="h1-bot" viewBox="46 4 168 164" aria-hidden="true"><rect x="52" y="24" width="156" height="140" rx="62" fill="#f1efe9" stroke="#ddd9d1" stroke-width="4"/><line x1="130" y1="24" x2="130" y2="12" stroke="#d8d4cb" stroke-width="6" stroke-linecap="round"/><circle cx="130" cy="9" r="8" fill="#2f6dff"/><circle cx="52" cy="94" r="10" fill="rgba(47,109,255,0.35)"/><circle cx="208" cy="94" r="10" fill="rgba(47,109,255,0.35)"/><rect x="78" y="56" width="104" height="72" rx="32" fill="#eaf1ff"/><rect x="103" y="76" width="13" height="30" rx="6.5" fill="#2f6dff"/><rect x="144" y="76" width="13" height="30" rx="6.5" fill="#2f6dff"/></svg>that <span class="grad">works for you</span></h1>
           <p class="sub rv d2">onBlue is an AI worker you own.<br>It finds real work, completes it, and pays you.</p>
           <div class="rv d3">
-            <button class="btn" type="button" onclick="document.getElementById('join').scrollIntoView({behavior:'smooth'})">
+            <button class="btn" type="button" onclick="startWiz()">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg>
               Get Access
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
@@ -375,7 +593,7 @@ body.crx-lock { overflow: hidden; }
         <div class="crx-band-in">
           <h2>Everyone will have one</h2>
           <p>Yours could be earning you <b>$30 every month</b>.</p>
-          <button class="btn" type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+          <button class="btn" type="button" onclick="startWiz()">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg>
             Get Access
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
@@ -413,6 +631,53 @@ body.crx-lock { overflow: hidden; }
   <div class="beat" id="beat2">It exists to <span class="grad">make you money.</span></div>
   <p class="skip" aria-hidden="true">Click anywhere to skip</p>
 
+  <!-- the application: the real apply flow (flow/apply, light kit), the robot alongside -->
+  <div id="wiz">
+    <div class="wiz-bar">
+      <span class="onb-wordmark" style="font-size:1.05rem"><span class="on">on</span>Blue</span>
+      <button class="wiz-exit" onclick="closeWiz()">Back to site</button>
+    </div>
+    <div class="apply-wrap">
+      <section class="crx-apply" id="apply-col">
+        <div class="crx-apply-col">
+          <h1>Apply to onBlue.</h1>
+          <p class="sub">One short application. We review every one and email you when your access is approved.</p>
+          <div class="apply-stage">
+            <div class="robot-wrap wbot" id="wbot" aria-hidden="true">
+          <svg viewBox="0 0 260 300" class="robot-svg">
+            <ellipse class="rb-shadow" cx="130" cy="288" rx="78" ry="9"/>
+            <g class="rb-body-g">
+              <g class="rb-arm-l"><rect x="52" y="176" width="26" height="58" rx="13" class="rb-limb"/></g>
+              <g class="rb-arm-r"><rect x="182" y="170" width="26" height="58" rx="13" class="rb-limb" transform="rotate(-30 195 178)"/></g>
+              <rect x="74" y="158" width="112" height="102" rx="44" class="rb-torso"/>
+              <path d="M84 176 q46 14 92 0" class="rb-stitch"/>
+              <g class="rb-head-g">
+                <rect x="52" y="24" width="156" height="140" rx="62" class="rb-head"/>
+                <line x1="130" y1="24" x2="130" y2="12" class="rb-ant-stem"/>
+                <circle cx="130" cy="8" r="6" class="rb-ant"/>
+                <circle cx="52" cy="94" r="9" class="rb-ear"/>
+                <circle cx="208" cy="94" r="9" class="rb-ear"/>
+                <rect x="78" y="56" width="104" height="72" rx="32" class="rb-face"/>
+                <g class="rb-eyes">
+                  <rect x="103" y="76" width="13" height="30" rx="6.5" class="rb-eye"/>
+                  <rect x="144" y="76" width="13" height="30" rx="6.5" class="rb-eye"/>
+                </g>
+                <g class="rb-eyes-happy">
+                  <path d="M99 96 q10.5 -13 21 0" class="rb-eye-arc"/>
+                  <path d="M140 96 q10.5 -13 21 0" class="rb-eye-arc"/>
+                </g>
+                <circle cx="90" cy="112" r="5" class="rb-blush"/>
+                <circle cx="170" cy="112" r="5" class="rb-blush"/>
+              </g>
+            </g>
+          </svg>
+            </div>
+            <div id="apply" class="crx-apply-form"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
 
 </div>
 <script>
@@ -737,6 +1002,283 @@ function startLoop() {
   }
   if (reduced || !brandIcon) { finish(); } else { startIntro(); }
 })();
+
+/* ════ the application (this flow's own): a vanilla port of the REAL apply flow
+   (flow/apply: ApplyForm + Steps + controls + Milestones, questions/copy/errors verbatim,
+   light kit) with the robot reacting alongside ════ */
+function startWiz() {
+  document.getElementById('landing').classList.add('gone');
+  document.getElementById('wiz').classList.add('on');
+  document.body.classList.add('crx-lock');
+  history.pushState({ wiz: 1 }, '', '#apply');
+  render();
+  fillRail('p-mail', D.email);
+}
+function closeWiz() {
+  if (history.state && history.state.wiz) history.back();
+  else location.reload();
+}
+addEventListener('popstate', () => {
+  if (document.getElementById('wiz').classList.contains('on')) location.reload();
+});
+function wSet(cls) {
+  const b = document.getElementById('wbot');
+  b.classList.remove('seek', 'work');
+  if (cls) b.classList.add(cls);
+}
+function wHop() {
+  const b = document.getElementById('wbot');
+  b.classList.remove('hop'); void b.offsetWidth; b.classList.add('hop');
+  setTimeout(() => b.classList.remove('hop'), 900);
+}
+function wSquint() { wSet('work'); setTimeout(() => wSet(null), 1400); }
+function fillRail(id, v) {
+  const e = document.getElementById(id);
+  if (!e) return;
+  e.textContent = v; e.classList.remove('empty');
+  const row = document.getElementById(id.replace('p-', 'r-'));
+  row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash');
+}
+
+/* ── spec.ts, ported: draft, steps, fields, validate ── */
+const D = { adult: false, describes: '', hasYouTube: '', channel: '', pcHours: '', runDays: '', earnedBefore: '', hasPaypal: '', fullRun: '', email: 'you@gmail.com', agree: false };
+const STEP_TITLES = ['', 'Before we start', 'Your channel', 'About you', 'Payment and contact'];
+const STEP_FIELDS = [[], ['adult', 'describes'], ['hasYouTube'], ['pcHours', 'runDays', 'earnedBefore'], ['hasPaypal', 'fullRun', 'email', 'agree']];
+const LAST = 4;
+let step = 0, submitted = false;
+const forced = {};
+function validate() {
+  const e = {};
+  if (!D.adult) e.adult = 'You need to be 18 or older to apply.';
+  if (!D.describes) e.describes = 'Pick the one that fits best.';
+  if (!D.hasYouTube) e.hasYouTube = 'Let us know if you have a YouTube account.';
+  if (!D.pcHours) e.pcHours = 'Pick the closest option.';
+  if (!D.runDays) e.runDays = 'Pick the closest option.';
+  if (!D.earnedBefore.trim()) e.earnedBefore = 'Tell us what you have tried. “Nothing yet” is an answer.';
+  if (!D.hasPaypal) e.hasPaypal = 'Let us know if you have a PayPal account.';
+  if (!D.fullRun) e.fullRun = 'Let us know if you are in for the long run.';
+  if (!D.email.trim()) e.email = 'Add the email you want to be contacted on.';
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(D.email.trim())) e.email = 'That doesn’t look like an email. Check for a typo.';
+  if (!D.agree) e.agree = 'You need to agree to the Terms of Use to apply.';
+  return e;
+}
+function vis(key) {
+  if (!forced[step]) return '';
+  return validate()[key] || '';
+}
+function setD(key, val, railId, railVal) {
+  D[key] = val;
+  if (railId) fillRail(railId, railVal === undefined ? val : railVal);
+  wHop();
+  render();
+}
+
+/* ── icons: choiceIcons.tsx + introIcons.tsx, paths verbatim ── */
+function ic(paths, size) {
+  return '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size + '" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
+}
+const ICONS = {
+  cap: ic('<path d="M12 4 22 9l-10 5L2 9l10-5Z"/><path d="M6 11.2V16c0 1.4 2.7 2.6 6 2.6s6-1.2 6-2.6v-4.8"/>', 20),
+  briefcase: ic('<rect x="2.5" y="7.5" width="19" height="12.5" rx="2.2"/><path d="M8.5 7.5V6a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v1.5M2.5 12.5h19"/>', 20),
+  creator: ic('<rect x="2.5" y="5" width="14" height="14" rx="2.5"/><path d="m16.5 10.5 5-2.8v8.6l-5-2.8"/><path d="m8 9.6 3.4 2.4L8 14.4V9.6Z"/>', 20),
+  laptop: ic('<rect x="4" y="5" width="16" height="10.5" rx="1.8"/><path d="M2 19h20"/>', 20),
+  dots: ic('<circle cx="5.5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18.5" cy="12" r="1.3"/>', 20),
+  yes: ic('<circle cx="12" cy="12" r="9"/><path d="m8 12.3 2.7 2.7L16 9.7"/>', 20),
+  no: ic('<circle cx="12" cy="12" r="9"/><path d="m9.2 9.2 5.6 5.6M14.8 9.2l-5.6 5.6"/>', 20),
+  yesS: ic('<circle cx="12" cy="12" r="9"/><path d="m8 12.3 2.7 2.7L16 9.7"/>', 15),
+  noS: ic('<circle cx="12" cy="12" r="9"/><path d="m9.2 9.2 5.6 5.6M14.8 9.2l-5.6 5.6"/>', 15),
+  monitor: ic('<rect x="3" y="4" width="18" height="12.5" rx="2"/><path d="M9.5 20.5h5M12 16.5v4"/><path d="M12 7v5M9.8 10l2.2 2 2.2-2"/>', 18),
+  clock: ic('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>', 18),
+  cadence: ic('<rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 9.5h16M8.5 3.5v3M15.5 3.5v3"/><rect x="13.2" y="13" width="3.4" height="3.2" rx="0.6" fill="currentColor" stroke="none"/>', 18),
+  wallet: ic('<rect x="3" y="6.5" width="18" height="12.5" rx="2.2"/><path d="M3 10.2h13.5a2.3 2.3 0 0 1 0 4.6H3"/><circle cx="16" cy="12.5" r="1" fill="currentColor" stroke="none"/>', 18),
+  doc: ic('<path d="M7 3.5h7l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1Z"/><path d="M14 3.5v4h4"/><path d="M8.5 12h7M8.5 15.3h7M8.5 8.7h3"/>', 18),
+  tick: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 6.5"/></svg>',
+};
+
+/* ── controls.tsx, ported ── */
+function errSlot(msg, hint) {
+  if (msg) return '<span role="alert" class="crx-err">' + msg + '</span>';
+  if (hint) return '<span class="crx-hint">' + hint + '</span>';
+  return '<span aria-hidden="true" class="crx-err"></span>';
+}
+function choiceGroup(cfg) {
+  const e = vis(cfg.key);
+  let inner = '';
+  cfg.options.forEach((o, i) => {
+    const on = D[cfg.key] === o.value;
+    const tone = o.tone ? ' tone-' + o.tone : '';
+    const state = (on ? ' on' : '') + (e && !on ? ' err' : '');
+    const lastOdd = cfg.variant === 'cards' && cfg.options.length % 2 === 1 && i === cfg.options.length - 1;
+    const pick = "setD('" + cfg.key + "','" + o.value.replace(/'/g, "\\'") + "','" + (cfg.railId || '') + "'" + (o.rail !== undefined ? ",'" + o.rail + "'" : '') + ")";
+    const input = '<input type="radio" name="' + cfg.name + '" class="sr-only"' + (on ? ' checked' : '') + ' onchange="' + pick + '">';
+    if (cfg.variant === 'cards') {
+      inner += '<label class="crx-ctl' + (lastOdd ? ' span-last' : '') + '">' + input +
+        '<span class="crx-choice-card' + tone + state + '">' +
+        (o.icon ? '<span class="crx-choice-ic">' + o.icon + '</span>' : '') +
+        '<span class="crx-choice-name">' + o.value + '</span>' +
+        (o.hint ? '<span class="crx-choice-hint">' + o.hint + '</span>' : '') +
+        '<span class="crx-choice-mark">' + ICONS.tick + '</span></span></label>';
+    } else {
+      inner += '<label class="crx-ctl">' + input +
+        '<span class="crx-choice' + tone + state + '">' +
+        (o.icon ? '<span class="crx-choice-ic">' + o.icon + '</span>' : '') + o.value + '</span></label>';
+    }
+  });
+  const wrap = cfg.variant === 'cards'
+    ? 'crx-choice-grid' + (cfg.columns === 3 ? ' cols-3' : '') + ' crx-opts' + (cfg.tight ? ' tight' : '')
+    : 'crx-choice-row crx-opts' + (cfg.tight ? ' tight' : '');
+  return '<fieldset class="crx-fieldset"><legend class="crx-label">' + cfg.label + '</legend>' +
+    '<div class="' + wrap + '">' + inner + '</div>' + errSlot(e, cfg.hint) + '</fieldset>';
+}
+function checkField(key, railId, html, subtle) {
+  const e = vis(key);
+  const on = D[key];
+  return '<div><label class="crx-ctl">' +
+    '<input type="checkbox" class="sr-only"' + (on ? ' checked' : '') + ' onchange="setD(\'' + key + '\', this.checked, \'' + (railId || '') + '\', this.checked ? \'Yes\' : \'…\')">' +
+    '<span class="crx-check' + (subtle ? ' subtle' : '') + (on ? ' on' : '') + (e && !on ? ' err' : '') + '">' +
+    '<span class="crx-check-box' + (on ? ' on' : '') + '">' + (on ? ICONS.tick : '') + '</span>' +
+    '<span>' + html + '</span></span></label>' + errSlot(e) + '</div>';
+}
+
+/* ── Milestones.tsx, ported ── */
+function milestones(stage) {
+  const active = stage === 'filling' ? 0 : 1;
+  const labels = ['Apply', 'We review', 'Deploy & earn'];
+  let h = '<ol aria-label="How the program starts" class="crx-mile">';
+  labels.forEach((label, i) => {
+    const state = i < active ? ' done' : i === active ? ' current' : '';
+    h += '<li class="crx-mile-step' + state + '">' +
+      (i > 0 ? '<span aria-hidden="true" class="crx-mile-line"></span>' : '') +
+      '<span class="crx-mile-dot">' + (i < active ? ICONS.tick : (i + 1)) + '</span>' +
+      '<span class="crx-mile-label">' + label + '</span></li>';
+  });
+  return h + '</ol>';
+}
+function rail() {
+  let segs = '';
+  for (let i = 0; i < 5; i++) segs += '<span class="crx-rail-seg' + (i < step ? ' done' : i === step ? ' current' : '') + '"></span>';
+  return '<div class="crx-rail"><span class="crx-rail-count">' + (step + 1) + '/5</span><span class="crx-rail-segs">' + segs + '</span></div>';
+}
+
+/* ── Steps.tsx / StepIntro.tsx / StepFour.tsx, ported ── */
+function introRow(icon, body) {
+  return '<div class="crx-intro-row"><span class="crx-intro-ic">' + icon + '</span><span class="crx-intro-body">' + body + '</span></div>';
+}
+function stepBody() {
+  if (step === 0) {
+    return introRow(ICONS.monitor, 'Once accepted, we’ll email you a download link. Set up onBlue on your PC.') +
+      introRow(ICONS.clock, 'onBlue completes campaigns and tasks on your YouTube account. Each takes a few minutes.') +
+      introRow(ICONS.cadence, 'All you do: run onBlue on at least <b>20 days</b> each month.') +
+      introRow(ICONS.wallet, 'You earn <b>$30 every month</b>, paid via PayPal.') +
+      introRow(ICONS.doc, 'Applying means you accept the <a class="crx-legal-link" href="https://blueai-screen-library.vercel.app/onblue/terms" target="_blank" rel="noopener">Terms of Use</a>.');
+  }
+  if (step === 1) {
+    return checkField('adult', 'p-age', 'I’m 18 or older.') +
+      '<div class="crx-qgap">' +
+      choiceGroup({ key: 'describes', railId: 'p-type', name: 'apply-describes', label: 'What best describes you?', hint: 'Helps us get to know applicants. It doesn’t decide your application.', variant: 'cards', columns: 3, options: [
+        { value: 'Student', icon: ICONS.cap }, { value: 'Employed', icon: ICONS.briefcase },
+        { value: 'Full-time creator', icon: ICONS.creator }, { value: 'Freelancer', icon: ICONS.laptop },
+        { value: 'Other', icon: ICONS.dots }] }) + '</div>';
+  }
+  if (step === 2) {
+    let h = choiceGroup({ key: 'hasYouTube', railId: 'p-acct', name: 'apply-has-youtube', label: 'Do you have a YouTube account?', hint: 'The campaigns onBlue completes run on your YouTube account.', variant: 'cards', options: [
+      { value: 'Yes', icon: ICONS.yes, hint: 'I have a channel', tone: 'ok' },
+      { value: 'No', icon: ICONS.no, hint: 'Not yet', tone: 'danger', rail: 'Not yet' }] });
+    if (D.hasYouTube === 'Yes') {
+      h += '<label class="crx-ctl crx-qgap"><span class="crx-label">Paste your channel or handle link <span class="crx-label-opt">(optional)</span></span>' +
+        '<input type="text" class="crx-field crx-gap-label" placeholder="youtube.com/@yourchannel" value="' + D.channel.replace(/"/g, '&quot;') + '" oninput="D.channel=this.value" onblur="if(D.channel.trim())fillRail(\'p-acct\',D.channel.trim())">' +
+        '<span aria-hidden="true" class="crx-err"></span></label>';
+    } else if (D.hasYouTube === 'No') {
+      h += '<p class="crx-aside crx-qgap">That’s fine. YouTube is the only platform live today, so campaigns will be limited for now. Instagram, TikTok, X and Reddit are next.</p>';
+    }
+    return h;
+  }
+  if (step === 3) {
+    return choiceGroup({ key: 'pcHours', railId: 'p-hours', name: 'apply-pc-hours', label: 'How many hours a day is your PC on and connected to the internet?', variant: 'chips', options: [
+        { value: 'Under 2 hours' }, { value: '2-5 hours' }, { value: '5-10 hours' }, { value: 'Basically always on' }] }) +
+      '<div class="crx-qgap">' +
+      choiceGroup({ key: 'runDays', railId: 'p-days', name: 'apply-run-days', label: 'How many days a week could you run onBlue?', variant: 'chips', options: [
+        { value: '1-2 days' }, { value: '3-4 days' }, { value: '5-6 days' }, { value: 'Every day' }] }) + '</div>' +
+      '<label class="crx-ctl crx-qgap"><span class="crx-label">Have you earned money online before? What did you try and how did it go?</span>' +
+      '<textarea class="crx-field crx-gap-label" rows="3" oninput="D.earnedBefore=this.value">' + D.earnedBefore + '</textarea>' +
+      errSlot(vis('earnedBefore')) + '</label>';
+  }
+  /* step 4 */
+  return choiceGroup({ key: 'hasPaypal', railId: 'p-pay', name: 'apply-paypal', label: 'Do you have a PayPal account?', hint: 'Payouts go out via PayPal.', variant: 'chips', options: [
+      { value: 'Yes', icon: ICONS.yesS, tone: 'ok' }, { value: 'No', icon: ICONS.noS, tone: 'danger', rail: 'Not yet' }] }) +
+    '<div class="crx-qgap-tight">' +
+    choiceGroup({ key: 'fullRun', railId: 'p-run', name: 'apply-full-run', label: 'Running onBlue only takes a few minutes a day, but this is a long-term commitment. Are you in for the long run?', variant: 'chips', tight: true, options: [
+      { value: 'Yes', tone: 'ok' }, { value: 'Not sure' }, { value: 'No', tone: 'danger' }] }) + '</div>' +
+    '<label class="crx-ctl crx-qgap-min"><span class="crx-label">What email should we contact you on?</span>' +
+    '<input type="email" class="crx-field crx-gap-label" value="' + D.email.replace(/"/g, '&quot;') + '" oninput="D.email=this.value" onblur="if(D.email.trim())fillRail(\'p-mail\',D.email.trim())">' +
+    errSlot(vis('email')) + '</label>' +
+    '<div class="crx-qgap-min">' +
+    checkField('agree', '', 'I agree to the <a class="crx-legal-link" href="https://blueai-screen-library.vercel.app/onblue/terms" target="_blank" rel="noopener">Terms of Use</a>.', true) +
+    '</div>';
+}
+
+function render() {
+  const slot = document.getElementById('apply');
+  if (submitted) {
+    wSet('seek');
+    slot.innerHTML = milestones('submitted') +
+      '<div class="crx-band dark" style="margin-top:1.4rem"><div class="crx-band-in"><div class="crx-confirm">' +
+      '<span class="crx-confirm-tick"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 6.5"/></svg></span>' +
+      '<h2>Thanks for applying.</h2>' +
+      '<p>You’re on the waitlist. We review every application in detail, so this can take some time. We’ll email <b>' + D.email + '</b> the moment your access is approved.</p>' +
+      '</div></div></div>' +
+      '<p style="text-align:center;margin-top:1.2rem"><button class="crx-btn-quiet" onclick="accepted()">Preview: what acceptance looks like</button></p>';
+    document.getElementById('wiz').scrollTop = 0;
+    return;
+  }
+  slot.innerHTML = milestones('filling') +
+    '<div class="crx-panel" style="margin-top:1.4rem"><form novalidate onsubmit="advance();return false">' +
+    '<div class="crx-form-head"><h2 class="crx-panel-title">' + STEP_TITLES[step] + '</h2>' + rail() + '</div>' +
+    '<div class="crx-step-body' + (step === 0 ? ' intro' : '') + '">' + stepBody() + '</div>' +
+    '<div class="crx-form-foot">' +
+    (step > 0 ? '<button type="button" class="crx-btn-quiet" onclick="goBack()">Back</button>' : '') +
+    '<button type="submit" class="btn crx-grow">' + (step === LAST ? 'Submit application' : 'Continue') + '</button>' +
+    '</div></form></div>';
+  document.getElementById('wiz').scrollTop = 0;
+}
+function goBack() { step--; render(); }
+function advance() {
+  const all = validate();
+  if (STEP_FIELDS[step].some(f => all[f])) {
+    forced[step] = true;
+    wSquint();
+    render();
+    return;
+  }
+  if (step === 4 && D.email.trim()) fillRail('p-mail', D.email.trim());
+  if (step < LAST) { step++; render(); return; }
+  submitted = true;
+  render();
+}
+function accepted() {
+  wSet(null); wHop();
+  const slot = document.getElementById('apply');
+  slot.innerHTML =
+    '<div class="crx-panel" style="position:relative;overflow:hidden" id="accept-card">' +
+    '<div class="state-icon st-ok">&#10003;</div><h2 style="font-family:\'Space Grotesk\',sans-serif;margin:0 0 4px">You’re in.</h2>' +
+    '<div class="offer-wage">$30<small> / month, via PayPal</small></div>' +
+    '<p class="why" style="margin:10px 0 0">Three steps and your worker is earning.</p>' +
+    '<ul class="wtl"><li class="now">Download onBlue for PC or Mac</li><li>Sign in with this account</li><li>Approve your first campaign</li></ul>' +
+    '<br><button class="btn">Download onBlue</button></div>';
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const cardEl = document.getElementById('accept-card');
+    for (let i = 0; i < 7; i++) {
+      const sp = document.createElement('span');
+      sp.className = 'spark'; sp.textContent = '✦';
+      sp.style.left = (12 + Math.random() * 76) + '%';
+      sp.style.top = (30 + Math.random() * 40) + '%';
+      sp.style.animationDelay = (Math.random() * .5) + 's';
+      cardEl.appendChild(sp);
+      setTimeout(() => sp.remove(), 2400);
+    }
+    setTimeout(wHop, 1200);
+  }
+}
 
 /* ════ robot reactions (this flow's own): eyes follow the task loop's beats ════ */
 (function robotFx() {
