@@ -14,109 +14,90 @@
 }
 html, body { margin: 0; background: var(--canvas); color: var(--ink); font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
 * { box-sizing: border-box; }
-.wrap { max-width: 860px; margin: 0 auto; padding: 9vh 1.5rem 4rem; }
+.wrap { max-width: 760px; margin: 0 auto; padding: 9vh 1.5rem 4rem; }
 .onb-wordmark { font-family: 'Space Grotesk', sans-serif; font-weight: 800; letter-spacing: -0.03em; color: #2f6dff; font-size: 1.4rem; }
 .onb-wordmark .on { color: var(--ink); }
 .eyebrow { font-family: var(--mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); margin: 2.2rem 0 0.5rem; }
 h1 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.9rem, 4vw, 2.7rem); font-weight: 800; letter-spacing: -0.02em; margin: 0 0 0.6rem; }
 .sub { color: var(--dim); font-size: 1.02rem; line-height: 1.65; margin: 0 0 1.4rem; max-width: 56ch; }
-/* group label: the eyebrow treatment, re-spaced to hold a section of cards rather than the page title */
-.group { font-family: var(--mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); margin: 2.4rem 0 0.9rem; }
-.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-@media (max-width: 720px) { .cards { grid-template-columns: 1fr; } }
-a.card { display: block; background: var(--sur); border: 1px solid var(--line-2); border-radius: 20px; padding: 26px 26px 24px; text-decoration: none; color: inherit; transition: border-color .15s, transform .15s, box-shadow .15s; position: relative; }
-a.card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 18px 44px -18px rgba(47,109,255,0.28); }
-.card .n { font-family: var(--mono); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
-.card h2 { font-family: 'Space Grotesk', sans-serif; font-size: 1.35rem; font-weight: 700; margin: 0.5rem 0 0.45rem; letter-spacing: -0.01em; }
-.card p { margin: 0; color: var(--dim); font-size: 0.92rem; line-height: 1.6; }
-.card .go { display: inline-flex; align-items: center; gap: 7px; margin-top: 18px; font-weight: 700; font-size: 0.88rem; color: var(--accent); }
-.wip { position: absolute; top: 18px; right: 18px; font-family: var(--mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #a15c00; background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.35); border-radius: 999px; padding: 4px 10px; }
-/* chip for pages served from the screen-library deployment: same shape as .wip, quieter color,
-   so a reviewer knows the link leaves this site */
-.ext { position: absolute; top: 18px; right: 18px; font-family: var(--mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #565a63; background: rgba(86,90,99,0.08); border: 1px solid rgba(86,90,99,0.25); border-radius: 999px; padding: 4px 10px; }
-/* chip for what is live right now: mint, same shape */
-.live { position: absolute; top: 18px; right: 18px; font-family: var(--mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #0f9d58; background: rgba(15,157,88,0.1); border: 1px solid rgba(15,157,88,0.3); border-radius: 999px; padding: 4px 10px; }
+.group { font-family: var(--mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); margin: 2.4rem 0 0.8rem; }
+/* LINE ROWS, not cards (asked for 2026-09-14): one page per line so the whole hub reads at a
+   glance. The card descriptions move to the title attribute and surface on hover. */
+.list { display: flex; flex-direction: column; gap: 8px; }
+a.row { display: flex; align-items: center; gap: 14px; background: var(--sur); border: 1px solid var(--line-2); border-radius: 14px; padding: 12px 18px; text-decoration: none; color: inherit; transition: border-color .15s, transform .15s, box-shadow .15s; }
+a.row:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 10px 26px -14px rgba(47,109,255,0.32); }
+.row .tag { flex: 0 0 7.2rem; font-family: var(--mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: var(--accent); }
+.row .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Space Grotesk', sans-serif; font-size: 1.02rem; font-weight: 700; letter-spacing: -0.01em; }
+.chip { flex-shrink: 0; font-family: var(--mono); font-size: 0.58rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; border-radius: 999px; padding: 3px 9px; }
+.chip.wip { color: #a15c00; background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.35); }
+.chip.live { color: #0f9d58; background: rgba(15,157,88,0.1); border: 1px solid rgba(15,157,88,0.3); }
+.chip.ext { color: #565a63; background: rgba(86,90,99,0.08); border: 1px solid rgba(86,90,99,0.25); }
+.row svg { flex-shrink: 0; color: var(--accent); transition: transform .15s; }
+a.row:hover svg { transform: translateX(3px); }
+@media (max-width: 560px) {
+  .row .tag { display: none; }
+  a.row { padding: 12px 14px; }
+}
 .foot { margin-top: 3rem; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em; color: var(--ink-4); }
 </style>
 </head>
 <body>
 <div class="wrap">
   <span class="onb-wordmark"><span class="on">on</span>Blue</span>
-  <p class="eyebrow">Internal · design options</p>
+  <p class="eyebrow">Internal &middot; design options</p>
   <h1>Pages in review</h1>
-  <p class="sub">Everything in play, grouped by audience: creator and partner pages first, then the brand side. Older options stay listed until they are formally retired. Cards marked screen library open on the shared screen-library deployment.</p>
+  <p class="sub">Everything in play, grouped by audience: creator and partner pages first, then the brand side. Hover a row for what it is. Rows marked screen library open on the shared screen-library deployment.</p>
 
   <p class="group">Creator page experiments</p>
-  <div class="cards">
-    <a class="card" href="/options/option-1.html">
-      <span class="n">Option 1</span>
-      <h2>Talk to the worker</h2>
-      <p>The current landing, with a chat terminal as the front door. Your future worker interviews you and files its own application.</p>
-      <span class="go">Open option 1
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
-      </span>
+  <div class="list">
+    <a class="row" href="/options/option-1.html" title="The current landing, with a chat terminal as the front door. Your future worker interviews you and files its own application.">
+      <span class="tag">Option 1</span>
+      <span class="t">Talk to the worker</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
     </a>
-    <a class="card" href="/options/option-2.html">
-      <span class="wip">WIP</span>
-      <span class="n">Option 2</span>
-      <h2>The robot</h2>
-      <p>The same homepage copy with a new protagonist: a friendly robot you can watch finding work, doing it, and getting paid.</p>
-      <span class="go">Open option 2
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
-      </span>
+    <a class="row" href="/options/option-2.html" title="The same homepage copy with a new protagonist: a friendly robot you can watch finding work, doing it, and getting paid.">
+      <span class="tag">Option 2</span>
+      <span class="t">The robot</span>
+      <span class="chip wip">WIP</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
     </a>
-    <a class="card" href="/">
-      <span class="live">Live</span>
-      <span class="n">This site</span>
-      <h2>The homepage</h2>
-      <p>The Version B mock as deployed at the root of this site: own an AI that works for you, boot intro, tasks and earnings.</p>
-      <span class="go">Open the homepage
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
-      </span>
+    <a class="row" href="/" title="The Version B mock as deployed at the root of this site: own an AI that works for you, boot intro, tasks and earnings.">
+      <span class="tag">This site</span>
+      <span class="t">The homepage</span>
+      <span class="chip live">Live</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
     </a>
-    <a class="card" href="https://blueai-screen-library.vercel.app/creators">
-      <span class="ext">Screen library</span>
-      <span class="n">Partner website</span>
-      <h2>The full partner flow</h2>
-      <p>Homepage, sign in, the 5-step application, a returning-partner dashboard with cash out, and logout, in its own dark design language.</p>
-      <span class="go">Open the partner site
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
-      </span>
+    <a class="row" href="https://blueai-screen-library.vercel.app/creators" title="Homepage, sign in, the 5-step application, a returning-partner dashboard with cash out, and logout, in its own dark design language.">
+      <span class="tag">Partner site</span>
+      <span class="t">The full partner flow</span>
+      <span class="chip ext">Screen library</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
     </a>
-    <a class="card" href="https://blueai-screen-library.vercel.app/experiments/onblue-vesper/index.html">
-      <span class="ext">Screen library</span>
-      <span class="n">onBlue hero</span>
-      <h2>Agentic Hero</h2>
-      <p>The light onBlue homepage: ascii robot field, cursor pool, and the agent runtime terminal. The design direction picked in the Sep 11 review.</p>
-      <span class="go">Open the Agentic hero
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
-      </span>
+    <a class="row" href="https://blueai-screen-library.vercel.app/experiments/onblue-vesper/index.html" title="The light onBlue homepage: ascii robot field, cursor pool, and the agent runtime terminal. The design direction picked in the Sep 11 review.">
+      <span class="tag">onBlue hero</span>
+      <span class="t">Agentic Hero</span>
+      <span class="chip ext">Screen library</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
     </a>
-    <a class="card" href="https://blueai-screen-library.vercel.app/experiments/onblue-dark-v1/index.html">
-      <span class="ext">Screen library</span>
-      <span class="n">onBlue hero</span>
-      <h2>Cinematic Hero</h2>
-      <p>The dark onBlue landing with the particle hands and a light twin. Its wording folds into the Agentic page per the Sep 11 review.</p>
-      <span class="go">Open the Cinematic hero
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
-      </span>
+    <a class="row" href="https://blueai-screen-library.vercel.app/experiments/onblue-dark-v1/index.html" title="The dark onBlue landing with the particle hands and a light twin. Its wording folds into the Agentic page per the Sep 11 review.">
+      <span class="tag">onBlue hero</span>
+      <span class="t">Cinematic Hero</span>
+      <span class="chip ext">Screen library</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
     </a>
   </div>
 
   <p class="group">Brand page experiments</p>
-  <div class="cards">
-    <a class="card" href="https://blueai-screen-library.vercel.app/creator-brand/brands">
-      <span class="ext">Screen library</span>
-      <span class="n">Brand website</span>
-      <h2>The brand side</h2>
-      <p>Post a job, outcome pricing, the campaign builder, and the new agent-made sample videos: three strip placements under review, switch A, B, or C from the gear at the bottom left.</p>
-      <span class="go">Open the brand site
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
-      </span>
+  <div class="list">
+    <a class="row" href="https://blueai-screen-library.vercel.app/creator-brand/brands" title="Post a job, outcome pricing, the campaign builder, and the new agent-made sample videos: three strip placements under review, switch A, B, or C from the gear at the bottom left.">
+      <span class="tag">Brand site</span>
+      <span class="t">The brand side</span>
+      <span class="chip ext">Screen library</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
     </a>
   </div>
 
-  <p class="foot">onBlue Partners · mocks, September 2026</p>
+  <p class="foot">onBlue Partners &middot; mocks, September 2026</p>
 </div>
 </body>
 </html>
