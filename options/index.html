@@ -19,7 +19,9 @@ html, body { margin: 0; background: var(--canvas); color: var(--ink); font-famil
 .onb-wordmark .on { color: var(--ink); }
 .eyebrow { font-family: var(--mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); margin: 2.2rem 0 0.5rem; }
 h1 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.9rem, 4vw, 2.7rem); font-weight: 800; letter-spacing: -0.02em; margin: 0 0 0.6rem; }
-.sub { color: var(--dim); font-size: 1.02rem; line-height: 1.65; margin: 0 0 2.6rem; max-width: 56ch; }
+.sub { color: var(--dim); font-size: 1.02rem; line-height: 1.65; margin: 0 0 1.4rem; max-width: 56ch; }
+/* group label: the eyebrow treatment, re-spaced to hold a section of cards rather than the page title */
+.group { font-family: var(--mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); margin: 2.4rem 0 0.9rem; }
 .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 @media (max-width: 720px) { .cards { grid-template-columns: 1fr; } }
 a.card { display: block; background: var(--sur); border: 1px solid var(--line-2); border-radius: 20px; padding: 26px 26px 24px; text-decoration: none; color: inherit; transition: border-color .15s, transform .15s, box-shadow .15s; position: relative; }
@@ -29,6 +31,11 @@ a.card:hover { border-color: var(--accent); transform: translateY(-3px); box-sha
 .card p { margin: 0; color: var(--dim); font-size: 0.92rem; line-height: 1.6; }
 .card .go { display: inline-flex; align-items: center; gap: 7px; margin-top: 18px; font-weight: 700; font-size: 0.88rem; color: var(--accent); }
 .wip { position: absolute; top: 18px; right: 18px; font-family: var(--mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #a15c00; background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.35); border-radius: 999px; padding: 4px 10px; }
+/* chip for pages served from the screen-library deployment: same shape as .wip, quieter color,
+   so a reviewer knows the link leaves this site */
+.ext { position: absolute; top: 18px; right: 18px; font-family: var(--mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #565a63; background: rgba(86,90,99,0.08); border: 1px solid rgba(86,90,99,0.25); border-radius: 999px; padding: 4px 10px; }
+/* chip for what is live right now: mint, same shape */
+.live { position: absolute; top: 18px; right: 18px; font-family: var(--mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #0f9d58; background: rgba(15,157,88,0.1); border: 1px solid rgba(15,157,88,0.3); border-radius: 999px; padding: 4px 10px; }
 .foot { margin-top: 3rem; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em; color: var(--ink-4); }
 </style>
 </head>
@@ -36,8 +43,10 @@ a.card:hover { border-color: var(--accent); transform: translateY(-3px); box-sha
 <div class="wrap">
   <span class="onb-wordmark"><span class="on">on</span>Blue</span>
   <p class="eyebrow">Internal · design options</p>
-  <h1>The partner site, two ways</h1>
-  <p class="sub">Two explorations of the same journey. Same light system, same copy where it matters, different front door. Pick one to walk through it.</p>
+  <h1>Pages in review</h1>
+  <p class="sub">Everything in play, grouped by audience: creator and partner pages first, then the brand side. Older options stay listed until they are formally retired. Cards marked screen library open on the shared screen-library deployment.</p>
+
+  <p class="group">Creator page experiments</p>
   <div class="cards">
     <a class="card" href="/options/option-1.html">
       <span class="n">Option 1</span>
@@ -56,7 +65,57 @@ a.card:hover { border-color: var(--accent); transform: translateY(-3px); box-sha
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
       </span>
     </a>
+    <a class="card" href="/">
+      <span class="live">Live</span>
+      <span class="n">This site</span>
+      <h2>The homepage</h2>
+      <p>The Version B mock as deployed at the root of this site: own an AI that works for you, boot intro, tasks and earnings.</p>
+      <span class="go">Open the homepage
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+      </span>
+    </a>
+    <a class="card" href="https://blueai-screen-library.vercel.app/creators">
+      <span class="ext">Screen library</span>
+      <span class="n">Partner website</span>
+      <h2>The full partner flow</h2>
+      <p>Homepage, sign in, the 5-step application, a returning-partner dashboard with cash out, and logout, in its own dark design language.</p>
+      <span class="go">Open the partner site
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+      </span>
+    </a>
+    <a class="card" href="https://blueai-screen-library.vercel.app/experiments/onblue-vesper/index.html">
+      <span class="ext">Screen library</span>
+      <span class="n">onBlue hero</span>
+      <h2>Agentic Hero</h2>
+      <p>The light onBlue homepage: ascii robot field, cursor pool, and the agent runtime terminal. The design direction picked in the Sep 11 review.</p>
+      <span class="go">Open the Agentic hero
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+      </span>
+    </a>
+    <a class="card" href="https://blueai-screen-library.vercel.app/experiments/onblue-dark-v1/index.html">
+      <span class="ext">Screen library</span>
+      <span class="n">onBlue hero</span>
+      <h2>Cinematic Hero</h2>
+      <p>The dark onBlue landing with the particle hands and a light twin. Its wording folds into the Agentic page per the Sep 11 review.</p>
+      <span class="go">Open the Cinematic hero
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+      </span>
+    </a>
   </div>
+
+  <p class="group">Brand page experiments</p>
+  <div class="cards">
+    <a class="card" href="https://blueai-screen-library.vercel.app/creator-brand/brands">
+      <span class="ext">Screen library</span>
+      <span class="n">Brand website</span>
+      <h2>The brand side</h2>
+      <p>Post a job, outcome pricing, the campaign builder, and the new agent-made sample videos: three strip placements under review, switch A, B, or C from the gear at the bottom left.</p>
+      <span class="go">Open the brand site
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+      </span>
+    </a>
+  </div>
+
   <p class="foot">onBlue Partners · mocks, September 2026</p>
 </div>
 </body>
