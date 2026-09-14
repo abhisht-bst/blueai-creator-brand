@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { readVideoPlacement, writeVideoPlacement, type VideoPlacement } from './videoPlacement'
 
 // THE REVIEWER'S STATE SWITCH for the brand side (Appy, 2026-08-26: "I was able to view it once,
 // then I'm not able to view it again").
@@ -32,6 +33,16 @@ const ROWS: { value: State; label: string; hint: string }[] = [
   { value: 'approved', label: 'Approved agency', hint: 'Dashboard shows campaigns' },
 ]
 
+// The video-strip placement group (2026-09-14): three candidate placements for the 9:16
+// example-video skeletons, being decided per the Sep 11 call. Same storage + reload mechanism
+// as the agency states; see videoPlacement.ts for the keys and VideoExamples.tsx for the strip.
+const PLACEMENT_ROWS: { value: VideoPlacement; label: string; hint: string }[] = [
+  { value: 'off', label: 'No video strip', hint: 'The page as it ships today' },
+  { value: 'a', label: 'A · After the hero', hint: 'Example strip directly under the hero' },
+  { value: 'b', label: 'B · After How it works', hint: 'Between the steps and Platforms' },
+  { value: 'c', label: 'C · In the hero', hint: 'Skeleton clips replace the hero artwork' },
+]
+
 function read(): State {
   try {
     if (localStorage.getItem(K_APPROVED) === '1') return 'approved'
@@ -45,8 +56,12 @@ function read(): State {
 export default function BrandPreview() {
   const [open, setOpen] = useState(false)
   const [state, setState] = useState<State>('new')
+  const [placement, setPlacement] = useState<VideoPlacement>('off')
   // Read after mount, never during render — the same hydration rule BrandSession follows.
-  useEffect(() => setState(read()), [])
+  useEffect(() => {
+    setState(read())
+    setPlacement(readVideoPlacement())
+  }, [])
 
   function apply(next: State) {
     try {
@@ -69,6 +84,14 @@ export default function BrandPreview() {
     window.location.assign(next === 'new' ? `${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/creator-brand/brands` : DASH)
   }
 
+  function applyPlacement(next: VideoPlacement) {
+    writeVideoPlacement(next)
+    // Reload rather than flip state: the strip's consumers (page slots, the hero) each read the
+    // placement once at mount, and a reload is the mechanism the rest of this tool already uses.
+    // Always lands on the brands page — the strip only exists there.
+    window.location.assign(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/creator-brand/brands`)
+  }
+
   if (!open) {
     return (
       <button type="button" className="cb-prev-fab" onClick={() => setOpen(true)} aria-label="Preview state">
@@ -81,23 +104,43 @@ export default function BrandPreview() {
   }
 
   return (
-    <div className="cb-prev" role="radiogroup" aria-label="Agency preview state">
+    <div className="cb-prev">
       <button type="button" className="cb-prev-head" onClick={() => setOpen(false)} aria-expanded="true">
         Preview · agency state
       </button>
-      {ROWS.map((r) => (
-        <button
-          key={r.value}
-          type="button"
-          role="radio"
-          aria-checked={state === r.value}
-          onClick={() => apply(r.value)}
-          className={state === r.value ? 'cb-prev-row on' : 'cb-prev-row'}
-        >
-          <span className="cb-prev-label">{r.label}</span>
-          <span className="cb-prev-hint">{r.hint}</span>
-        </button>
-      ))}
+      {/* Two radiogroups in one panel now, so the role moved off the panel and onto each group's
+          own wrapper — one flat group holding both sets would read as seven states of one thing. */}
+      <div role="radiogroup" aria-label="Agency preview state" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {ROWS.map((r) => (
+          <button
+            key={r.value}
+            type="button"
+            role="radio"
+            aria-checked={state === r.value}
+            onClick={() => apply(r.value)}
+            className={state === r.value ? 'cb-prev-row on' : 'cb-prev-row'}
+          >
+            <span className="cb-prev-label">{r.label}</span>
+            <span className="cb-prev-hint">{r.hint}</span>
+          </button>
+        ))}
+      </div>
+      <div className="cb-prev-sub">Video examples · placement</div>
+      <div role="radiogroup" aria-label="Video examples placement" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {PLACEMENT_ROWS.map((r) => (
+          <button
+            key={r.value}
+            type="button"
+            role="radio"
+            aria-checked={placement === r.value}
+            onClick={() => applyPlacement(r.value)}
+            className={placement === r.value ? 'cb-prev-row on' : 'cb-prev-row'}
+          >
+            <span className="cb-prev-label">{r.label}</span>
+            <span className="cb-prev-hint">{r.hint}</span>
+          </button>
+        ))}
+      </div>
     </div>
   )
 }

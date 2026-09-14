@@ -6,6 +6,7 @@ import { ModalCTA, ModalTextLink } from '../OpenModal'
 import PixelRain from '../creators/PixelRain'
 import ScrollCue from '../creators/ScrollCue'
 import TiltImage from '../creators/TiltImage'
+import { useVideoPlacement, VideoStrip } from './VideoExamples'
 
 // Same edge-card device as the creators hero, brand-side proof points.
 const EDGE_CARDS = [
@@ -50,6 +51,9 @@ function EdgeCard({ c }: { c: (typeof EDGE_CARDS)[number] }) {
 }
 
 export default function Hero() {
+  // Placement C of the video-examples review (see VideoExamples.tsx): the 9:16 skeleton strip
+  // takes the hero artwork's slot. 'off'/'a'/'b' all leave this hero exactly as shipped.
+  const placement = useVideoPlacement()
   return (
     <>
     <section id="hero" className="relative overflow-hidden px-6 pb-24 pt-10 sm:pt-14">
@@ -78,7 +82,12 @@ export default function Hero() {
           <ModalTextLink kind="pricing">See how pricing works</ModalTextLink>
         </Reveal>
 
-        <Reveal delay={0.25} className="mt-10 w-full max-w-[1240px] overflow-hidden">
+        {/* overflow-hidden only around the artwork — the strip's tilted cards would clip in it,
+            and the strip manages its own horizontal overflow. */}
+        <Reveal delay={0.25} className={placement === 'c' ? 'mt-14 w-full max-w-[1240px]' : 'mt-10 w-full max-w-[1240px] overflow-hidden'}>
+          {placement === 'c' ? (
+            <VideoStrip />
+          ) : (
           <TiltImage className="-mt-[1%]">
             {/* MOBILE GETS ITS OWN COMPOSITION, same reasoning as the creators hero (see that file for
                 the full account): a real <picture>, not two images toggled by display classes, because
@@ -120,14 +129,19 @@ export default function Hero() {
               />
             </picture>
           </TiltImage>
+          )}
         </Reveal>
       </div>
     </section>
 
     {/* SIBLING of the section, not a child — see ScrollCue.tsx for why (overflow-hidden above
-        would clip it). This page has no signed-in variant, so it's unconditional here, but the
-        component still lives with the creators one since both heroes share it. */}
-    <ScrollCue />
+        would clip it). This page has no signed-in variant, so it renders whenever the seam below
+        has room, and the component still lives with the creators one since both heroes share it.
+        NOT for placement A of the video-examples review: the cue draws 92px below this seam, into
+        space that normally belongs to StepCards' full-screen centred title — placement A puts the
+        video section's own heading (py-24, heading at the top) exactly there, and a cue pointing
+        at a heading it overlaps is worse than no cue. */}
+    {placement !== 'a' && <ScrollCue />}
     </>
   )
 }

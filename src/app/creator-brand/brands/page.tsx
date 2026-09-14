@@ -8,6 +8,7 @@ import TrustSectionBrand from '@/components/creator-brand/brands/TrustSectionBra
 import FAQBrand from '@/components/creator-brand/brands/FAQBrand'
 import ClosingCTA from '@/components/creator-brand/brands/ClosingCTA'
 import BrandPreview from '@/components/creator-brand/brands/BrandPreview'
+import VideoExamples from '@/components/creator-brand/brands/VideoExamples'
 
 export default function BrandsPage() {
   return (
@@ -15,7 +16,12 @@ export default function BrandsPage() {
       <Header />
       <main>
         <Hero />
+        {/* Candidate slots for the 9:16 example-video strip (placement under review, Sep 11 call).
+            Both are always mounted; whichever matches the placement chosen in BrandPreview's gear
+            renders, the rest return null. Placement C lives inside Hero. See VideoExamples.tsx. */}
+        <VideoExamples slot="a" />
         <HowItWorksBrand />
+        <VideoExamples slot="b" />
         <PlatformsBrand />
         {/* No campaign-form section any more (designer, 2026-08-11), the form is a dialog opened
             by every "Create a campaign" CTA. It's mounted once in the layout's ModalHost. */}

@@ -776,3 +776,25 @@
 /* the hint is what makes the switch usable without a key: each row says what it will show, so a
    reviewer picks a screen rather than guessing which storage state produces it */
 .cb-prev-hint { font-size: 10px; line-height: 1.4; color: #8a90a2; }
+/* second group label inside the same panel (video-strip placement lives under the agency states);
+   mirrors .cb-prev-head minus the collapse affordance, plus a divider to mark the group break */
+.cb-prev-sub {
+  margin-top: 4px; padding: 8px 8px 4px; border-top: 1px solid #eef0f6;
+  font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  color: #8a90a2;
+}
+
+/* 9:16 video skeletons (brands video-examples strip): the sheen that marks a frame as a
+   placeholder awaiting a real clip. Lives here because the DS has no skeleton treatment. */
+.cb-skel {
+  background: linear-gradient(110deg, #f2f3f7 40%, #fafbfd 50%, #f2f3f7 60%);
+  background-size: 220% 100%;
+  animation: cb-skel-sheen 2.4s ease-in-out infinite;
+}
+@keyframes cb-skel-sheen {
+  from { background-position: 120% 0; }
+  to { background-position: -60% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cb-skel { animation: none; }
+}
