@@ -38,12 +38,6 @@
     </a>
   );
 
-  // Shared by both modes — both are acceptance moments, so both carry the arbitration notice.
-  const ARBITRATION_NOTE = () => (
-    <>These terms include <LegalLink anchor="arbitration">binding arbitration</LegalLink> and a
-      class action waiver for disputes.</>
-  );
-
   // Body copy is JSX (it carries live anchors), so modes hold render functions, not strings.
   const MODES = {
     // The app's governing contract is the BlueAI Partner Program Terms (2026-09-14 legal set;
@@ -57,12 +51,12 @@
     // is a notice, not a contract, and under GDPR conditioning product use on "agreeing" to it
     // is not valid consent. Cookie consent for non-essential cookies is likewise NOT collected
     // here (invalid inside a terms acceptance in the EU/UK); that is the site banner's job.
-    // The arbitration `note` is required at the point of agreement: both contracts open with
-    // "BY CLICKING 'I AGREE' BELOW..." and a conspicuous arbitration notice. Per the same
-    // review it names the class action waiver, links the arbitration section, and renders at
-    // the SAME size/color as the consent line — courts have voided arbitration clauses over
-    // faint notice text, and the old 11.5px #9ca3af also failed WCAG contrast. The 2026-09-14
-    // drafts contain NO arbitration opt-out window; if legal adds one, this line must state it.
+    // NO on-screen arbitration line, by legal's own call (Ashish, in writing, 2026-09-24): a
+    // "These terms include binding arbitration and a class action waiver" note lived under the
+    // consent line for one revision and was removed as unnecessary. Notice of the arbitration
+    // clause rides on the linked documents themselves, which open with the all-caps IMPORTANT
+    // NOTICE above the clause. If legal ever reverses (e.g. an opt-out window is added, which
+    // the 2026-09-14 drafts don't have), the removed line is one commit back in history.
     // Button stays "Agree and continue" (Abhisht, 2026-09-18).
     firstrun: {
       title: 'Before you start',
@@ -74,7 +68,6 @@
           acknowledge the <LegalLink anchor="privacy">Privacy Policy</LegalLink> and{' '}
           <LegalLink anchor="cookies">Cookie Policy</LegalLink>.</>
       ),
-      note: ARBITRATION_NOTE,
       cta: 'Agree and continue'
     },
     // The document names here are placeholders for whichever documents actually changed in that
@@ -87,7 +80,6 @@
           <LegalLink anchor="privacy">Privacy Policy</LegalLink>. Please review them and accept
           the updated terms to keep using BlueAI.</>
       ),
-      note: ARBITRATION_NOTE,
       cta: 'Agree and continue'
     }
   };
@@ -125,13 +117,6 @@
           <p style={{ marginTop: 8, fontSize: 13, color: '#6b7280', lineHeight: 1.6 }}>
             {cfg.body()}
           </p>
-          {/* Same size and color as the consent line above, NOT a quieter tier — legal notice
-             text that reads as fine print is exactly what gets arbitration clauses voided, and
-             the old 11.5px #9ca3af failed WCAG AA contrast (#6b7280 on white passes). */}
-          {cfg.note &&
-            <p style={{ marginTop: 6, fontSize: 13, color: '#6b7280', lineHeight: 1.6 }}>
-              {cfg.note()}
-            </p>}
           <button onClick={close}
             style={{ width: '100%', marginTop: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#1990FF', border: 'none', borderRadius: 999, padding: '13px 28px', fontSize: 15, fontWeight: 700, color: 'white', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 16px rgba(25,144,255,0.35)', transition: 'transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease' }}
             onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.filter = 'brightness(1.06)'; e.currentTarget.style.boxShadow = '0 6px 18px rgba(25,144,255,0.42)'; }}
