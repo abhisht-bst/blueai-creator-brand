@@ -20,6 +20,11 @@
 //     never cost the user their place in the app. Relative URL: resolves on the deployment
 //     (blueai-screen-library.vercel.app/onblue/terms); 404s on a bare static file server, which
 //     is fine — the prototype's job is the sheet, not the destination.
+// HANDOFF — acceptance records (legal review, Ashish 2026-09-24, matching the Privacy Policy's
+// own "consent records" section): every "Agree and continue" click must be recorded server-side
+// with the user ID, a timestamp, the terms version accepted, the IP address, and the exact
+// screen/copy the user saw. A material terms change re-collects acceptance — that is this
+// sheet's 'update' mode. This prototype has no backend, so nothing here records anything.
 // Exposes window.TermsSheet = { TermsSheet }.
 (function () {
   const { useState } = React;
@@ -33,16 +38,31 @@
     </a>
   );
 
+  // Shared by both modes — both are acceptance moments, so both carry the arbitration notice.
+  const ARBITRATION_NOTE = () => (
+    <>These terms include <LegalLink anchor="arbitration">binding arbitration</LegalLink> and a
+      class action waiver for disputes.</>
+  );
+
   // Body copy is JSX (it carries live anchors), so modes hold render functions, not strings.
   const MODES = {
     // The app's governing contract is the BlueAI Partner Program Terms (2026-09-14 legal set;
     // per its "order of documents" section it governs over the site TOU for anything
     // Program-related), so first-run acceptance names IT, not the site Terms of Use.
-    // #program is the legal page's PLANNED Program Terms tab — the page rework is a separate
-    // task; until it lands the link resolves to the page top, which is still the right page.
+    // #program and #arbitration are the legal page's PLANNED anchors (Program Terms tab, its
+    // Choice of Law; Arbitration section) — the page rework is a separate task; until it lands
+    // the links resolve to the page top, which is still the right page.
+    // Wording split, per legal review (Ashish, 2026-09-24): the user AGREES to the contract
+    // (Program Terms) and ACKNOWLEDGES the notices (Privacy + Cookie Policy) — a privacy policy
+    // is a notice, not a contract, and under GDPR conditioning product use on "agreeing" to it
+    // is not valid consent. Cookie consent for non-essential cookies is likewise NOT collected
+    // here (invalid inside a terms acceptance in the EU/UK); that is the site banner's job.
     // The arbitration `note` is required at the point of agreement: both contracts open with
-    // "BY CLICKING 'I AGREE' BELOW..." and a conspicuous arbitration notice, so every BLOCKING
-    // (accepting) mode carries it. The notice-only update mode is not an acceptance moment.
+    // "BY CLICKING 'I AGREE' BELOW..." and a conspicuous arbitration notice. Per the same
+    // review it names the class action waiver, links the arbitration section, and renders at
+    // the SAME size/color as the consent line — courts have voided arbitration clauses over
+    // faint notice text, and the old 11.5px #9ca3af also failed WCAG contrast. The 2026-09-14
+    // drafts contain NO arbitration opt-out window; if legal adds one, this line must state it.
     // Button stays "Agree and continue" (Abhisht, 2026-09-18).
     firstrun: {
       title: 'Before you start',
@@ -50,23 +70,24 @@
         // "Program Terms", not the full program name — the program's name can change, the
         // generic label can't go stale (Abhisht, 2026-09-24). The link still carries the reader
         // to the specific document.
-        <>By continuing, you agree to the <LegalLink anchor="program">Program Terms</LegalLink> and{' '}
-          <LegalLink anchor="privacy">Privacy Policy</LegalLink>, including{' '}
-          <LegalLink anchor="cookies">Cookie Use</LegalLink>.</>
+        <>By continuing, you agree to the <LegalLink anchor="program">Program Terms</LegalLink> and
+          acknowledge the <LegalLink anchor="privacy">Privacy Policy</LegalLink> and{' '}
+          <LegalLink anchor="cookies">Cookie Policy</LegalLink>.</>
       ),
-      note: 'These terms include binding arbitration for disputes.',
+      note: ARBITRATION_NOTE,
       cta: 'Agree and continue'
     },
     // The document names here are placeholders for whichever documents actually changed in that
-    // update — in the real build they are data, not fixed copy.
+    // update — in the real build they are data, not fixed copy. "Accept the updated terms", not
+    // "accept them": the Privacy Policy in the sentence is acknowledged, never accepted.
     update: {
       title: 'Updates to our Terms of Use',
       body: () => (
         <>We've updated our <LegalLink anchor="terms">Terms of Use</LegalLink> and{' '}
-          <LegalLink anchor="privacy">Privacy Policy</LegalLink>. Please review and accept them to
-          keep using BlueAI.</>
+          <LegalLink anchor="privacy">Privacy Policy</LegalLink>. Please review them and accept
+          the updated terms to keep using BlueAI.</>
       ),
-      note: 'These terms include binding arbitration for disputes.',
+      note: ARBITRATION_NOTE,
       cta: 'Agree and continue'
     }
   };
@@ -104,9 +125,12 @@
           <p style={{ marginTop: 8, fontSize: 13, color: '#6b7280', lineHeight: 1.6 }}>
             {cfg.body()}
           </p>
+          {/* Same size and color as the consent line above, NOT a quieter tier — legal notice
+             text that reads as fine print is exactly what gets arbitration clauses voided, and
+             the old 11.5px #9ca3af failed WCAG AA contrast (#6b7280 on white passes). */}
           {cfg.note &&
-            <p style={{ marginTop: 6, fontSize: 11.5, color: '#9ca3af', lineHeight: 1.5 }}>
-              {cfg.note}
+            <p style={{ marginTop: 6, fontSize: 13, color: '#6b7280', lineHeight: 1.6 }}>
+              {cfg.note()}
             </p>}
           <button onClick={close}
             style={{ width: '100%', marginTop: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#1990FF', border: 'none', borderRadius: 999, padding: '13px 28px', fontSize: 15, fontWeight: 700, color: 'white', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 16px rgba(25,144,255,0.35)', transition: 'transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease' }}
