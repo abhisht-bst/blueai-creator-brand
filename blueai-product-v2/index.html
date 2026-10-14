@@ -101,8 +101,8 @@
     .ba-chip:active { transform: scale(0.96); }
     .ba-chip--below:hover:not(.ba-chip--sel) { background: #f1f5f9 !important; border-color: #cbd5e1 !important; }
     .ba-chip--inside:hover:not(.ba-chip--sel) { background: rgba(255,255,255,0.9) !important; }
-    /* Mode rows (agent_permissions.jsx): the keyboard focus ring, in the mode popover and in
-       Settings' Worker card. */
+    /* Mode rows (agent_permissions.jsx): the keyboard focus ring, in the mode popover and the
+       docked answer panel. */
     .ba-mode-row:focus-visible { outline: 2px solid #1990FF; outline-offset: -2px; }
   </style>
 </head>
@@ -994,8 +994,8 @@ function App() {
         onConfirm={() => { setLogoutOpen(false); setProfileOpen(false); setActiveTab('chat'); }} />
 
       {/* The "Run YouTube jobs automatically?" confirm. One instance here, inside .ba-app, so it is
-         scoped to the product window whichever control asked for it (the mode popover from the
-         composer chip or the ribbon's Change, Settings, the onboarding question, the job ask). */}
+         scoped to the product window. The one control that asks for it is the composer chip's mode
+         popover. */}
       <window.AgentPermissions.AutoConfirm />
 
       {/* Out-of-credits popup on message-send: prime geo → Prime upsell (image 1); non-prime geo → BYOK (image 2). */}

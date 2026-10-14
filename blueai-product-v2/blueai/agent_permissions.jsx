@@ -18,7 +18,7 @@
    but nothing renders it; chat_product.jsx notes where it went if it comes back.
    The chip opens the Oct 5 Mode menu as the design system's Popover (DESIGN.md 27): a header naming
    YouTube, one row per mode with a one-line description, a check on the current one and its
-   number shortcut. Settings carries the same rows in its Worker card. Not persisted: every reload
+   number shortcut. (Settings' Worker card was removed 2026-10-14: the chip is the one place.) Not persisted: every reload
    starts a brand-new user on Always ask. The real app keeps the setting per account.
 
    No scroll jump (the bug in Arpit's sheet): the popover opens in view above the composer, focus

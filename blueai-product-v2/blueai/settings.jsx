@@ -5,19 +5,8 @@
 
 const { useState } = React;
 
-/* Worker (Arpit's card, 2026-10-14; one app since the same day): the permanent home of the mode
-   outside chat. It holds the mode popover's own rows (agent_permissions.jsx's ModeRows), so a pick
-   here and one in chat are the same setting, and picking Automatic asks for consent. */
-function WorkerCard() {
-  const AP = window.AgentPermissions;
-  return (
-    <div data-section="worker-settings" style={{ background: 'white', borderRadius: 16, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.06)', marginBottom: 14 }}>
-      <h2 style={{ fontSize: 17, fontWeight: 700, color: '#111827', marginBottom: 10 }}>Worker</h2>
-      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 6 }}>{AP.HEADER}</h3>
-      <div style={{ margin: '0 -6px' }}><AP.ModeRows /></div>
-    </div>
-  );
-}
+/* (The Worker card with the mode rows was removed 2026-10-14, Abhisht: not needed. The mode is
+   changed only from the chip next to the chat box, agent_permissions.jsx.) */
 
 function BluestacksCard() {
   return (
@@ -146,7 +135,6 @@ function SettingsScreen({ byok, aiModeConditions }) {
   return (
     <div style={{ paddingTop: 16, paddingBottom: 20 }}>
       <BluestacksCard />
-      <WorkerCard />
       <TelegramCard />
       <window.AiMode.AIModeCard {...aiMode} />
       {/* Bring Your Own Key — available in every geo; the canonical place to add/manage a key. */}
