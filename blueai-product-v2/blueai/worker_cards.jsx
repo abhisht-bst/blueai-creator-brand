@@ -2,18 +2,16 @@
 
    PlanCard   the live PLAN card: light-blue, label, summary, numbered plan, suggested-skill chip.
    AskBubble  a worker question: the live app's yellow "needs your input" bubble (optional bold
-              title), then the way to answer it, which the Preview panel's "Answers" row picks
-              (Abhisht, 2026-10-14: "it's not evident enough that the users can also type"):
-                other   quick-reply chips plus an "Other" chip that puts the cursor in the composer,
-                        which stays open while the question waits, so a typed answer works too.
-                dock    no chips here: the answer panel docks over the composer (answer_dock.jsx).
-              (Chips-only, with the composer locked as live, was removed the same day.)
+              title), then quick-reply chips under it. The composer stays open while the question
+              waits ("Or type your answer…"), so a typed answer works too (Abhisht, 2026-10-14).
+              Tried and dropped the same day: an "Other" chip that focused the composer, and the
+              docked answer panel (answer_dock.jsx's Dock, archived, not rendered).
               Onboarding's questions AND the daily paid-job ask use it, so every question reads as
               one. An option flagged `consent` turns on Automatic for YouTube, so it opens the
               consent dialog first and only answers once the person agrees; Cancel leaves the
               question waiting. Chips follow the design system's Chip (DS 15, "V2 today" look).
    choose     what picking an option does (consent first for Automatic, mode for Always ask), shared
-              by the chips, the docked panel and a typed answer.
+              by the chips and a typed answer.
 
    Exposes window.WorkerCards = { PlanCard, AskBubble, choose }. */
 (function () {
@@ -24,8 +22,6 @@
      bubble ("bg-[#fdf6cf] border border-[#f3e8a8] text-[#8a6116]"), which this prototype already
      mirrors as chat_bubbles.jsx FINAL_STYLES.needsInput. */
   const INPUT = { bg: '#fdf6cf', border: '#f3e8a8', text: '#8a6116' };
-  const IcoPencil = ({ size = 15 }) =>
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>;
 
   function PlanCard() {
     const P = WF().PLAN;
@@ -61,7 +57,7 @@
       </button>);
   }
 
-  function AskBubble({ step, answer, onAnswer, ui = 'other', onOther }) {
+  function AskBubble({ step, answer, onAnswer }) {
     const t = T();
     const pending = !answer;
     const Zap = AP().IcoZap;
@@ -76,10 +72,9 @@
             </ul>}
           {step.question && <p style={{ fontSize: 13.5, color: INPUT.text, lineHeight: 1.5, marginTop: 7 }}>{step.question}</p>}
         </div>
-        {pending && ui !== 'dock' && <>
+        {pending && <>
           <div role="group" aria-label={step.question || step.lead} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
             {step.options.map((o) => <Chip key={o.id} label={o.label} icon={o.consent ? <Zap size={16} /> : null} onPick={() => choose(o, onAnswer)} />)}
-            {ui === 'other' && <Chip label="Other" icon={<IcoPencil />} onPick={() => onOther && onOther()} />}
           </div>
           {step.hint && <p style={{ fontSize: t.text12, color: t.ink3, lineHeight: t.leadingSnug, marginTop: 7 }}>{step.hint}</p>}
         </>}

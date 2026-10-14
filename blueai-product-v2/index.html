@@ -159,7 +159,7 @@
 <script type="text/babel" src="blueai/worker_cards.jsx"></script>
 <!-- The day-done card, the worker home's earnings strip and the notification words (exposes window.WorkerDayDone) -->
 <script type="text/babel" src="blueai/worker_day_done.jsx"></script>
-<!-- The docked answer panel for worker questions, and typed answers (exposes window.AnswerDock) -->
+<!-- Typed answers to worker questions; also holds the archived docked answer panel (exposes window.AnswerDock) -->
 <script type="text/babel" src="blueai/answer_dock.jsx"></script>
 <script type="text/babel" src="blueai/product_home.jsx"></script>
 <!-- Assembled product chat: the conversation, composer + send rules (exposes window.ProductChat) -->
@@ -228,8 +228,7 @@ const SIGNIN_CASES = [
 //   ?end=job | nojob | day20 | failed   how today's run ends: the day-done card and the notification
 //                   (worker sheet row 2). Implies day=next. Default: job
 //   (?card was removed 2026-10-14: the days-led message is the only one)
-//   ?input=dock     a worker question is answered in the docked answer panel (default: chips plus an
-//                   "Other" chip, with the composer open for a typed answer)
+//   (?input=dock opened the docked answer panel; archived 2026-10-14, ignored now)
 //   ?mode=auto      start with Automatic on for YouTube (default: Always ask). Skips
 //                   the consent dialog: the link stands in for a person who already agreed.
 // ROB-21388 sign-in handoff (the browser window beside the app):
@@ -243,7 +242,6 @@ const LINK = {
   start: ['next', 'returning'].includes(QS.get('day')) || QS.has('end') || QS.get('start') === 'worker' ? 'worker' : (QS.get('start') === 'signin' ? 'signin' : null),
   day: QS.get('day') === 'next' || QS.has('end') ? 'next' : 'day1',
   end: ['job', 'nojob', 'day20', 'failed'].includes(QS.get('end')) ? QS.get('end') : 'job',
-  input: QS.get('input') === 'dock' ? 'dock' : 'other',
   mode: QS.get('mode') === 'auto' ? 'auto' : 'always',
   signin: QS.get('signin') === 'browser' || CASES_MODE ? 'browser' : null,
   browser: ['other', 'out'].includes(QS.get('browser')) ? QS.get('browser') : 'accepted',
@@ -642,7 +640,6 @@ function App() {
   const [workerDay, setWorkerDay] = useState(LINK.day);
   const [dailyRunKey, setDailyRunKey] = useState(0);
   const [dayEnd, setDayEnd] = useState(LINK.end);        // how today's run ends (worker_day_done.jsx)
-  const [inputUi, setInputUi] = useState(LINK.input);    // how a worker question is answered: other (chips + Other) | dock
   const [toast, setToast] = useState(null);              // the Windows notification a scheduled run raises when its day is done
   const [linkCopied, setLinkCopied] = useState(false);
   const linkDayPlayed = useRef(false);   // ?day=next plays its run once, after the first boot
@@ -749,7 +746,6 @@ function App() {
       p.set('start', 'worker');
       if (workerDay !== 'day1') p.set('day', workerDay);
       if (workerDay === 'next' && dayEnd !== 'job') p.set('end', dayEnd);
-      if (inputUi !== 'other') p.set('input', inputUi);
       if (window.AgentPermissions.getMode('youtube') === 'auto') p.set('mode', 'auto');
     }
     const url = location.origin + location.pathname + (p.toString() ? '?' + p.toString() : '');
@@ -960,7 +956,7 @@ function App() {
         <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', width: '420px' }}>
           <ProductChatScreen sessionKey={sessionKey} seed={seed} loading={!homeReady} zeroCredits={zeroCredits && !byokActive} onNoCredits={() => setOocOpen(true)} isOnboarding={!isLoggedIn} sessionMode={sessionMode} onNeedLogin={(text) => { setLoginFlow('onboarding'); setPendingMessage(text); setShowLoginModal(true); }} showStates={showChatStates}
             scheduledOoc={scheduledOoc && !byokActive}
-            dailyRunKey={dailyRunKey} onJobWaiting={setJobWaiting} permUi={CASES_MODE ? 'none' : permUi} onDayDone={(end) => setToast({ end, key: Date.now() })} inputUi={inputUi}
+            dailyRunKey={dailyRunKey} onJobWaiting={setJobWaiting} permUi={CASES_MODE ? 'none' : permUi} onDayDone={(end) => setToast({ end, key: Date.now() })}
             bsInstalled={bsInstalled} onBsInstalled={completeBluestacksInstall} />
         </div>
       ) : (
@@ -1169,7 +1165,7 @@ function App() {
                plays onboarding, mode back to Always ask); Next day plays the following day's
                scheduled run in its own chat, again on every click. Removed 2026-10-14 to clean the
                panel up: Change mode from (the ribbon is archived; the composer chip stays), Setup
-               question, Card (Days is the one), and Chips-only under Answers. */
+               question, Card (Days is the one), and Answers (chips it is; Other and Docked archived). */
             if (isChat && sessionMode === 'moneymaker' && isLoggedIn) {
               /* Mode: YouTube's mode set directly, no consent dialog, exactly like ?mode=auto. */
               rows.push(<PreviewRow key="permmode" label="Mode" opts={[['Always ask', 'always'], ['Automatic', 'auto']]} val={permModes.youtube}
@@ -1188,10 +1184,6 @@ function App() {
                   setDayEnd(v); window.WorkerDayDone.setEnd(v); setToast(null); setSeed(null);
                   setWorkerDay('next'); window.WorkerFlow.setOnboarded(true); setDailyRunKey((k) => k + 1); setSessionKey((k) => k + 1);
                 }} />);
-              /* Answers (Abhisht, 2026-10-14): how a worker question is answered. Chips + Other
-                 adds an "Other" chip and keeps the composer open for a typed answer; Docked puts a
-                 numbered answer panel with an Other row in the composer's place. */
-              rows.push(<PreviewRow key="inputui" label="Answers" opts={[['Chips + Other', 'other'], ['Docked', 'dock']]} val={inputUi} set={setInputUi} />);
             }
             if (activeTab === 'settings') {
               rows.push(<PreviewRow key="aihw" label="Hardware" opts={[['Yes', true], ['No', false]]} val={aiHwSupported} set={setAiHwSupported} />);

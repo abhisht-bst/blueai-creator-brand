@@ -84,9 +84,9 @@
     nojob: 'Your run still counts for today.',
     declined: 'Today doesn’t count toward your program days.'
   };
-  function DayDoneCard({ step, answer, onAnswer, ui, onOther }) {
+  function DayDoneCard({ step, answer, onAnswer }) {
     const B = window.ChatBubbles;
-    if (step.end === 'failed') return React.createElement(window.WorkerCards.AskBubble, { step: failedAsk(step), answer, onAnswer, ui, onOther });
+    if (step.end === 'failed') return React.createElement(window.WorkerCards.AskBubble, { step: failedAsk(step), answer, onAnswer });
     if (LINES[step.end]) return React.createElement(B.StatusBubble, { content: LINES[step.end] });
     return null;
   }

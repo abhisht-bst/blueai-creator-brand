@@ -28,7 +28,7 @@
   const DayDoneOverlay = (p) => React.createElement(window.WorkerDayDone.DayDoneOverlay, p);   // the centre "run complete" moment over the whole window
 
   /* ───────── Merged chat screen: ProductHome (empty) → task-progress + feedback (active) ───────── */
-  function ChatScreen({ sessionKey, seed, loading, zeroCredits, onNoCredits, isOnboarding, sessionMode = 'default', onNeedLogin, showStates, bsInstalled = true, onBsInstalled, scheduledOoc = false, dailyRunKey = 0, onJobWaiting, permUi = 'chatbox', onDayDone, inputUi = 'other' }) {
+  function ChatScreen({ sessionKey, seed, loading, zeroCredits, onNoCredits, isOnboarding, sessionMode = 'default', onNeedLogin, showStates, bsInstalled = true, onBsInstalled, scheduledOoc = false, dailyRunKey = 0, onJobWaiting, permUi = 'chatbox', onDayDone }) {
     const C = window.ChatCompare;
     const [convo, setConvo] = useState([]);
     const [visible, setVisible] = useState(0);
@@ -85,14 +85,13 @@
     const awaitingIdx = convo.slice(0, visible).findIndex((s, i) => s.role === 'ask' && !answers['k' + i]);
     const awaiting = awaitingIdx !== -1;
     const running = visible < convo.length || awaiting;
-    /* How a worker question is answered (Preview "Answers", 2026-10-14): chips + Other (the composer
-       stays open for a typed answer) or the docked panel (answer_dock.jsx) in the composer's place.
-       Chips-only, with the composer locked, was removed. A typed answer is read by WorkerFlow.interpret(). */
+    /* A worker question is answered with its chips, or by typing: the composer stays open while it
+       waits (Abhisht, 2026-10-14). A typed answer is read by WorkerFlow.interpret(). The docked
+       answer panel (answer_dock.jsx's Dock) is archived: it rendered in the composer's place. */
     const askStep = awaiting ? convo[awaitingIdx] : null;
     const typeOk = !!askStep;
     const answerAsk = (i, step, a, typed) => { setAnswers((p) => ({ ...p, ['k' + i]: a })); push(WF().next(step, a, typed)); };
     const typeAnswer = (text) => { setDraft(''); window.AnswerDock.answerTyped(askStep, text, (a, typed) => answerAsk(awaitingIdx, askStep, a, typed), push); };
-    const focusComposer = () => { if (taRef.current) taRef.current.focus({ preventScroll: true }); };
 
     /* An unanswered job ask lights up BlueAI's taskbar button, the way Windows flags an app that
        needs you (Abhisht, 2026-10-05). 4s is the prototype's stand-in for "nobody answered". */
@@ -180,9 +179,9 @@
         onDone={() => { onBsInstalled && onBsInstalled(step.app, step.text); push(makeResumeSteps(step.text, step.app)); }} />;
       if (step.role === 'plan') return <PlanCard key={i} />;
       if (step.role === 'daydone' || step.card === 'daydone') return <DayDoneCard key={i} step={step} answer={answers['k' + i]}
-        onAnswer={(a) => answerAsk(i, step, a)} ui={inputUi} onOther={focusComposer} />;
+        onAnswer={(a) => answerAsk(i, step, a)} />;
       if (step.role === 'ask') return <AskBubble key={i} step={step} answer={answers['k' + i]}
-        onAnswer={(a) => answerAsk(i, step, a)} ui={inputUi} onOther={focusComposer} />;
+        onAnswer={(a) => answerAsk(i, step, a)} />;
       if (step.role === 'thinking') return i === visible - 1 ? <ThinkingBubble key={i} /> : null;
       return <FinalBubble key={i} msg={step} feedback={feedbackFor(i, step)} />;
     };
@@ -266,9 +265,7 @@
             </div>}
           {/* (The Automatic ribbon, ROB-21350 Version 2, is archived 2026-10-14: AgentPermissions.AutoRibbon,
              rendered here when permUi === 'ribbon' && workerStarted, if it ever comes back.) */}
-          {inputUi === 'dock' && askStep
-            ? <window.AnswerDock.Dock step={askStep} onAnswer={(a) => answerAsk(awaitingIdx, askStep, a)} onTyped={typeAnswer} onStop={stop} />
-            : <div style={{ position: 'relative', display: 'flex', flexDirection: modeChip ? 'column' : 'row', alignItems: modeChip ? 'stretch' : 'center', gap: modeChip ? 2 : 8, border: '1.5px solid ' + (isOnboarding ? '#60a5fa' : (composerFocused ? '#1990FF' : '#c7dcf5')), borderRadius: isOnboarding ? 18 : 14, background: 'white', padding: modeChip ? '8px 8px 6px 10px' : '8px 10px', boxShadow: composerFocused ? '0 0 0 3px rgba(25,144,255,0.12)' : (isOnboarding && !started ? '0 0 0 4px rgba(25,144,255,0.12)' : '0 1px 4px rgba(0,0,0,0.04)'), transition: 'border-color 0.15s ease, box-shadow 0.15s ease' }}>
+          <div style={{ position: 'relative', display: 'flex', flexDirection: modeChip ? 'column' : 'row', alignItems: modeChip ? 'stretch' : 'center', gap: modeChip ? 2 : 8, border: '1.5px solid ' + (isOnboarding ? '#60a5fa' : (composerFocused ? '#1990FF' : '#c7dcf5')), borderRadius: isOnboarding ? 18 : 14, background: 'white', padding: modeChip ? '8px 8px 6px 10px' : '8px 10px', boxShadow: composerFocused ? '0 0 0 3px rgba(25,144,255,0.12)' : (isOnboarding && !started ? '0 0 0 4px rgba(25,144,255,0.12)' : '0 1px 4px rgba(0,0,0,0.04)'), transition: 'border-color 0.15s ease, box-shadow 0.15s ease' }}>
             <textarea ref={taRef} value={draft} disabled={(running && !typeOk) || scheduledOoc} rows={1}
               onChange={(e) => setDraft(e.target.value)}
               onFocus={() => setComposerFocused(true)}
@@ -284,7 +281,7 @@
             {modeChip
               ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}><window.AgentPermissions.ModeChip />{sendBtn}</div>
               : sendBtn}
-          </div>}
+          </div>
         </div>}
         {doneIdx > seenDone && <DayDoneOverlay step={convo[doneIdx]} onClose={() => setSeenDone(doneIdx)} />}
       </>);

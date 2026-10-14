@@ -1,4 +1,7 @@
-/* BlueAI — the docked answer panel (Abhisht, 2026-10-14: "it's not evident enough that the users
+/* ARCHIVED 2026-10-14 (Abhisht went ahead with chips): Dock is kept here but nothing renders it.
+   answerTyped() is still live: the composer's typed answers go through it.
+
+   BlueAI — the docked answer panel (Abhisht, 2026-10-14: "it's not evident enough that the users
    can also type for a response"; modelled on how Claude asks a question). The Preview panel's
    "Answers" row, Docked option.
 
