@@ -1,59 +1,63 @@
 /* BlueAI — agent permissions (ROB-21350, "Agent should ask for permission once").
 
-   One setting PER APP (Abhisht, 2026-10-12), deciding whether the BlueAI worker asks before it
-   takes a paid job on that app during its daily run:
+   ONE app, YouTube, with two modes (Abhisht, 2026-10-14: "We need a UI with only one app; the one
+   we had before worked"). The setting decides whether the BlueAI worker asks before it takes a
+   paid YouTube job during its daily run:
      always  Always ask (the default): the job ask waits for an answer, then the job runs to the end.
      auto    Automatic: no ask; the worker takes the job and finishes it on its own.
-   YouTube is the app today; Instagram is next. A new app always starts on Always ask and has to
-   be switched to Automatic on its own, and each switch is its own consent. The wording is
-   "Always ask" and "Automatic" everywhere, never "Always allow", "Auto" or "Supervised".
+   The wording is "Always ask" and "Automatic" everywhere, never "Always allow", "Auto" or
+   "Supervised". The store stays keyed by app (getMode('youtube')), so a second app later is one
+   APPS entry plus a UI decision; the UI today shows YouTube only. Arpit's two-app sheet (one
+   switch per app) was dropped the same day for this. A one-app bottom sheet was tried after it
+   and dropped too (Abhisht: "the previous one with the dialogue was better").
 
-   Where the person first picks is worker_flow.jsx's business (an onboarding question, or "Yes,
-   switch to Automatic" on the daily job ask). Where they change it LATER is the question two
-   versions put to the seniors (Abhisht, 2026-10-05), switched from the Preview panel's Version row:
-     1 'chatbox'  ModeChip in the composer's bottom bar, in every signed-in chat (product level).
-     2 'ribbon'   AutoRibbon above the composer, only in a worker chat and only while Automatic is
-                  on for some app (skill level). A Settings card and a worker-card row were dropped.
-   Both open the same menu: one row per app, each with its own Always ask / Automatic switch.
-   Not persisted: every reload of this prototype starts a brand-new user on Always ask everywhere.
-   The real app keeps the settings per account.
+   No worker question offers Automatic (Abhisht, 2026-10-14): the mode is switched only from
+   ModeChip in the composer's bottom bar, in every signed-in chat (product level).
+   ARCHIVED 2026-10-14: AutoRibbon, the one-line "Automatic on YouTube / Change" ribbon above the
+   composer (worker chats only, while Automatic is on). Its code stays below and is still exported,
+   but nothing renders it; chat_product.jsx notes where it went if it comes back.
+   The chip opens the Oct 5 Mode menu as the design system's Popover (DESIGN.md 27): a header naming
+   YouTube, one row per mode with a one-line description, a check on the current one and its
+   number shortcut. Settings carries the same rows in its Worker card. Not persisted: every reload
+   starts a brand-new user on Always ask. The real app keeps the setting per account.
+
+   No scroll jump (the bug in Arpit's sheet): the popover opens in view above the composer, focus
+   moves into it with preventScroll, and the app box is pinned to scrollTop 0 as a guard.
 
    Automatic is CONSENT, not a preference: with it on, BlueAI accepts jobs and acts on the person's
-   account on that app (posting videos, liking, following) with nobody watching. So every way of
-   turning it on for an app goes through AutoConfirm, whose "I agree, turn on" button is the
-   agreement. The dialog names the app and lists every app with the setting it will have. Asked
-   every time it is turned on, not once per lifetime. The agreement time is kept locally here; the
-   real product records it server-side, per app.
+   YouTube account (posting videos, liking, following) with nobody watching. So every way of
+   turning it on goes through AutoConfirm, whose "I agree, turn on" button is the agreement;
+   Always ask applies at once. The agreement time is kept locally here; the real product records
+   it server-side. The consent paragraph is Arpit's draft and still needs Abhisht's (or legal's) OK.
 
-   Exposes window.AgentPermissions = { MODES, APPS, getMode, setMode, reset, autoApps, requestMode,
-   usePermissionMode, ModeChip, AutoRibbon, AutoConfirm, IcoShieldCheck, IcoZap }. */
+   Look: the "V2 today" tokens (v2_tokens.jsx).
+
+   Exposes window.AgentPermissions = { MODES, APPS, HEADER, getMode, setMode, reset, autoApps,
+   requestMode, usePermissionMode, ModeChip, AutoRibbon, ModeRows, AutoConfirm, IcoShieldCheck,
+   IcoZap }. */
 (function () {
   const { useState, useEffect, useRef } = React;
-
-  const ACCENT = '#1990FF';
-  const INK = '#111827';
-  const MUTED = '#6b7280';
-  const FAINT = '#9ca3af';
+  const T = () => window.V2Tokens;
 
   const stroke = (size, paths) =>
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>{paths}</svg>;
   const IcoShieldCheck = ({ size = 16 }) => stroke(size, <><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /><path d="m9 12 2 2 4-4" /></>);
   const IcoZap = ({ size = 16 }) => stroke(size, <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" />);
-  // App marks, in the product's own stroke style rather than brand logos.
+  // The app mark, in the product's own stroke style rather than the brand logo.
   const IcoYouTube = ({ size = 16 }) => stroke(size, <><rect x="2.5" y="5" width="19" height="14" rx="4" /><path d="m10 9 5 3-5 3z" fill="currentColor" stroke="none" /></>);
-  const IcoInstagram = ({ size = 16 }) => stroke(size, <><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="3.8" /><circle cx="17.3" cy="6.7" r="0.9" fill="currentColor" stroke="none" /></>);
-  const IcoChevron = ({ down }) =>
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.7, transform: down ? 'rotate(180deg)' : undefined }}><polyline points="6 15 12 9 18 15" /></svg>;
+  const IcoCheck = ({ size = 16, color }) =>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="20 6 9 17 4 12" /></svg>;
+  const IcoChevron = () =>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.7 }}><polyline points="6 15 12 9 18 15" /></svg>;
 
+  /* `key` is the number shortcut shown on the popover row and honoured while it is open. */
   const MODES = [
-    { id: 'always', title: 'Always ask', sub: 'Asks before each job starts, then runs it to the end', Icon: IcoShieldCheck },
-    { id: 'auto', title: 'Automatic', sub: 'Starts and finishes jobs without asking', Icon: IcoZap }];
-  const APPS = [
-    { id: 'youtube', name: 'YouTube', Icon: IcoYouTube },
-    { id: 'instagram', name: 'Instagram', Icon: IcoInstagram }];
+    { id: 'always', key: '1', title: 'Always ask', sub: 'Asks before each job starts, then runs it to the end', Icon: IcoShieldCheck },
+    { id: 'auto', key: '2', title: 'Automatic', sub: 'Starts and finishes jobs without asking', Icon: IcoZap }];
+  const APPS = [{ id: 'youtube', name: 'YouTube', Icon: IcoYouTube }];
+  const APP = APPS[0];
+  const HEADER = 'Mode for ' + APP.name + ' jobs';
   const byId = (id) => MODES.find((m) => m.id === id) || MODES[0];
-  const appById = (id) => APPS.find((a) => a.id === id) || APPS[0];
-  const listNames = (apps) => apps.map((a) => a.name).join(apps.length === 2 ? ' and ' : ', ');
 
   /* ── Store ── */
   const fresh = () => Object.fromEntries(APPS.map((a) => [a.id, 'always']));
@@ -62,13 +66,13 @@
   let afterConsent = null;   // what the asker does once the person agrees (the job card starts its job)
   const subs = new Set();
   const emit = () => subs.forEach((f) => f());
-  const getMode = (app = 'youtube') => modes[app] || 'always';
+  const getMode = (app = APP.id) => modes[app] || 'always';
   const autoApps = () => APPS.filter((a) => modes[a.id] === 'auto');
-  function setMode(app, m) { modes = { ...modes, [appById(app).id]: byId(m).id }; confirming = null; emit(); }
+  function setMode(app, m) { modes = { ...modes, [app in modes ? app : APP.id]: byId(m).id }; confirming = null; emit(); }
   function reset() { modes = fresh(); confirming = null; afterConsent = null; emit(); }
   // `then` runs only if the mode actually changes; Cancel on the consent drops it.
   function requestMode(app, m, then) {
-    if (m === 'auto' && modes[app] !== 'auto') { confirming = app; afterConsent = then || null; emit(); return; }
+    if (m === 'auto' && getMode(app) !== 'auto') { confirming = app; afterConsent = then || null; emit(); return; }
     setMode(app, m); if (then) then();
   }
   function agreeAuto() {
@@ -83,121 +87,152 @@
     return { modes, confirming, requestMode, setMode, autoApps };
   }
 
-  /* ── The per-app switch ── one row per app: mark, name, and a two-way segmented control. Picking
-     Automatic goes through the consent for that app; Always ask applies at once. */
-  function AppRows({ onPick }) {
+  /* ── The mode rows ── a radio group, one row per mode: icon, title, one-line description, a check
+     on the current one and (in the popover) its number shortcut. Picking Automatic goes through
+     the consent; Always ask applies at once. Up/Down move between the rows. */
+  function ModeRows({ onPick, keys = false }) {
+    const t = T();
     const { modes: cur } = usePermissionMode();
-    const seg = (on) => ({ flex: 1, border: 'none', borderRadius: 6, padding: '5px 8px', fontSize: 11.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', background: on ? 'white' : 'transparent', color: on ? INK : MUTED, boxShadow: on ? '0 1px 3px rgba(15,23,42,0.14)' : 'none', transition: 'background 0.13s ease, color 0.13s ease' });
+    const now = cur[APP.id];
+    const choose = (id) => { if (onPick) onPick(id); if (id !== now) requestMode(APP.id, id); };
+    const arrow = (e) => {
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      e.preventDefault();
+      const rows = Array.from(e.currentTarget.querySelectorAll('[role="radio"]'));
+      const i = rows.indexOf(document.activeElement);
+      const next = rows[(i + (e.key === 'ArrowDown' ? 1 : rows.length - 1)) % rows.length];
+      if (next) next.focus({ preventScroll: true });
+    };
     return (
-      <>
-        {APPS.map((a) => (
-          <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '7px 10px' }}>
-            <span style={{ display: 'flex', color: '#64748b' }}><a.Icon size={16} /></span>
-            <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 700, color: INK }}>{a.name}</span>
-            <div role="radiogroup" aria-label={a.name + ' mode'} style={{ display: 'flex', background: '#f1f5f9', borderRadius: 8, padding: 2, width: 172 }}>
-              {MODES.map((m) => {
-                const on = cur[a.id] === m.id;
-                return <button key={m.id} type="button" role="radio" aria-checked={on} onClick={() => { if (!on) { if (onPick) onPick(); requestMode(a.id, m.id); } }} style={seg(on)}>{m.title}</button>;
-              })}
-            </div>
-          </div>))}
-      </>);
-  }
-
-  /* ── Mode chip + menu ── Version 1 seats it in the composer's bottom bar; Version 2's ribbon
-     uses it as a bare "Change" link (`bare` + `label`). placement 'up' opens above the trigger,
-     'down' below it. anchor 'row' positions the menu against the host row instead of the trigger
-     (give that row position: relative), so a trigger at the row's right end can't push the menu
-     off the window. The chip's own label sums the apps up: "Always ask" while nothing is
-     automatic, otherwise "Automatic · YouTube". */
-  function ModeChip({ placement = 'up', anchor = 'self', label, bare = false }) {
-    const { autoApps: on } = usePermissionMode();
-    const [open, setOpen] = useState(false);
-    const ref = useRef(null);
-    const auto = on();
-    const m = byId(auto.length ? 'auto' : 'always');
-    const summary = auto.length ? 'Automatic · ' + listNames(auto) : 'Always ask';
-
-    useEffect(() => {
-      if (!open) return;
-      const down = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-      const key = (e) => { if (e.key === 'Escape') setOpen(false); };
-      document.addEventListener('mousedown', down);
-      document.addEventListener('keydown', key);
-      return () => { document.removeEventListener('mousedown', down); document.removeEventListener('keydown', key); };
-    }, [open]);
-
-    return (
-      <div ref={ref} style={{ position: anchor === 'row' ? 'static' : 'relative' }}>
-        <button type="button" onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open} title="Mode"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, border: 'none', background: open ? (bare ? 'rgba(25,144,255,0.1)' : '#f1f5f9') : 'transparent', borderRadius: 8, padding: bare ? '3px 7px' : '5px 7px', fontSize: 12, fontWeight: bare ? 700 : 650, color: bare ? ACCENT : '#475569', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'background 0.13s ease' }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = bare ? 'rgba(25,144,255,0.1)' : '#f1f5f9'; }}
-          onMouseLeave={(e) => { if (!open) e.currentTarget.style.background = 'transparent'; }}>
-          {bare ? label : <><m.Icon size={14} />{label || summary}<IcoChevron down={placement === 'down'} /></>}
-        </button>
-
-        {open &&
-          <div role="menu" aria-label="Mode" className="ba-msg-in"
-            style={{ position: 'absolute', left: -4, ...(placement === 'down' ? { top: 'calc(100% + 6px)' } : { bottom: 'calc(100% + 8px)' }), width: 364, background: 'white', border: '1px solid #e5e7eb', borderRadius: 12, boxShadow: '0 14px 34px rgba(15,23,42,0.16)', padding: 5, zIndex: 30 }}>
-            <p style={{ fontSize: 11.5, fontWeight: 650, color: FAINT, padding: '6px 10px 3px' }}>Mode, per app</p>
-            <AppRows onPick={() => setOpen(false)} />
-            <p style={{ fontSize: 11.5, color: FAINT, lineHeight: 1.45, padding: '4px 10px 6px' }}>Automatic starts and finishes that app’s jobs without asking. Each app has its own setting, and a new app starts on Always ask.</p>
-          </div>}
+      <div role="radiogroup" aria-label={HEADER} onKeyDown={arrow}>
+        {MODES.map((x) => {
+          const on = x.id === now;
+          return (
+            <button key={x.id} type="button" role="radio" aria-checked={on} tabIndex={on ? 0 : -1} className="ba-mode-row" onClick={() => choose(x.id)}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left', border: 'none', background: on ? t.select : 'transparent', borderRadius: t.radiusSm, padding: '8px 10px', cursor: 'pointer', fontFamily: 'inherit', transition: 'background ' + t.dur1 + 'ms ' + t.easeStandard }}
+              onMouseEnter={(e) => { if (!on) e.currentTarget.style.background = t.washHover; }}
+              onMouseLeave={(e) => { if (!on) e.currentTarget.style.background = 'transparent'; }}>
+              <span style={{ display: 'flex', color: t.ink3 }}><x.Icon size={t.iconSm} /></span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: t.text14, fontWeight: t.wSemibold, color: t.ink, lineHeight: 1.3 }}>{x.title}</span>
+                <span style={{ display: 'block', fontSize: t.text12, color: t.ink3, lineHeight: 1.35, marginTop: 1 }}>{x.sub}</span>
+              </span>
+              <span style={{ width: 16, display: 'flex' }}>{on && <IcoCheck color={t.action} />}</span>
+              {keys && <span aria-hidden="true" style={{ fontSize: t.text11, fontWeight: t.wMedium, color: t.ink4, width: 10, textAlign: 'right' }}>{x.key}</span>}
+            </button>);
+        })}
       </div>);
   }
 
+  /* ── The mode popover ── anchored ABOVE its nearest positioned ancestor (the composer box for the
+     chip, the ribbon for Change), at its left edge, min(364, that box) wide. A non-modal dialog
+     named by its header. Focus moves to the current row on open, without scrolling; Esc closes and
+     returns focus to the button; an outside click or focus leaving closes it; 1 and 2 pick. */
+  // Darker than the design system's shadow-1 (Abhisht, 2026-10-14), so the popover lifts clearly
+  // off the white chat behind it: a deep soft cast plus a tight contact shadow.
+  const POP_SHADOW = '0 16px 40px rgba(15,23,42,0.28), 0 3px 10px rgba(15,23,42,0.14)';
+  function ModePopover({ triggerRef, onClose }) {
+    const t = T();
+    const ref = useRef(null);
+    const back = () => { const b = triggerRef.current; if (b && b.isConnected) b.focus({ preventScroll: true }); };
+    const pick = (id) => { onClose(); if (id === 'always') setTimeout(back, 0); };
+    useEffect(() => {
+      const panel = ref.current;
+      const app = panel && panel.closest('.ba-app');
+      const pin = () => { if (app) { app.scrollTop = 0; app.scrollLeft = 0; } };
+      const row = panel && (panel.querySelector('[role="radio"][aria-checked="true"]') || panel.querySelector('[role="radio"]'));
+      if (row) row.focus({ preventScroll: true });
+      pin();
+      const down = (e) => {
+        if (panel.contains(e.target) || (triggerRef.current && triggerRef.current.contains(e.target))) return;
+        onClose();
+      };
+      const key = (e) => {
+        if (e.key === 'Escape') { e.preventDefault(); onClose(); back(); return; }
+        if (/^(INPUT|TEXTAREA)$/.test((e.target && e.target.tagName) || '')) return;
+        const hit = MODES.find((x) => x.key === e.key);
+        if (hit) { e.preventDefault(); pick(hit.id); if (hit.id !== getMode()) requestMode(APP.id, hit.id); }
+      };
+      document.addEventListener('mousedown', down);
+      document.addEventListener('keydown', key);
+      return () => { document.removeEventListener('mousedown', down); document.removeEventListener('keydown', key); pin(); };
+    }, []);
+    return (
+      <div ref={ref} role="dialog" aria-labelledby="ap-mode-head" tabIndex={-1} className="ba-msg-in"
+        onBlur={(e) => { const to = e.relatedTarget; if (to && !e.currentTarget.contains(to) && !(triggerRef.current && triggerRef.current.contains(to))) onClose(); }}
+        style={{ position: 'absolute', left: 0, bottom: 'calc(100% + 8px)', width: t.popoverW, maxWidth: '100%', boxSizing: 'border-box', background: t.surface, border: t.stroke + 'px solid ' + t.line, borderRadius: t.radiusMd, boxShadow: POP_SHADOW, padding: 4, zIndex: t.zPopover, outline: 'none', textAlign: 'left' }}>
+        <p id="ap-mode-head" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: t.text12, fontWeight: t.wMedium, color: t.ink3, padding: '7px 10px 5px' }}>
+          <APP.Icon size={14} />{HEADER}</p>
+        <ModeRows keys onPick={pick} />
+      </div>);
+  }
+
+  /* ── Version 1: the Mode chip ── sits in the composer's bottom bar and shows the mode itself:
+     "Always ask" or "Automatic". It opens the mode popover above the composer. */
+  function ModeChip() {
+    const t = T();
+    usePermissionMode();
+    const m = byId(getMode());
+    const [open, setOpen] = useState(false);
+    const btn = useRef(null);
+    return (
+      <>
+        <button ref={btn} type="button" onClick={() => setOpen((v) => !v)} aria-haspopup="dialog" aria-expanded={open} title={HEADER}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: t.hitMin, border: 'none', background: open ? t.washHover : 'transparent', borderRadius: t.radiusSm, padding: '0 8px', fontSize: t.text13, fontWeight: t.wMedium, color: t.ink2, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'background ' + t.dur1 + 'ms ' + t.easeStandard }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = t.washHover; }}
+          onMouseLeave={(e) => { if (!open) e.currentTarget.style.background = 'transparent'; }}>
+          <span style={{ display: 'flex', color: t.ink3 }}><m.Icon size={t.iconSm} /></span>{m.title}<IcoChevron />
+        </button>
+        {open && <ModePopover triggerRef={btn} onClose={() => setOpen(false)} />}
+      </>);
+  }
+
   /* ── Consent to Automatic ── Rendered ONCE, at App level inside .ba-app, so the absolute
-     ModalOverlay is scoped to the product window whichever surface asked for it. Shaped like
-     Claude Code's bypass-permissions warning: what changes, then what you are agreeing to, and the
-     agreement IS the button ("I agree, turn on"), so there is no checkbox to tick first. It names
-     the app, and lists every app with the setting it will have, so "per app" is seen, not read. */
+     ModalOverlay is scoped to the product window whichever surface asked for it. MINIMAL (Arpit,
+     2026-10-14): what BlueAI will do, that it posts under your name, that it can be undone, and
+     the agreement IS the button ("I agree, turn on"), so there is no checkbox and no separate
+     agreement paragraph. Buttons: the design system's 44px pair, Cancel then the primary. */
   function AutoConfirm() {
-    const { confirming: app, modes: cur } = usePermissionMode();
-    const a = app ? appById(app) : null;
-    const btn = { flex: 1, borderRadius: 10, padding: '10px 12px', fontSize: 13.5, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', whiteSpace: 'nowrap' };
+    const t = T();
+    const { confirming: app } = usePermissionMode();
+    const a = app ? (APPS.find((x) => x.id === app) || APP) : null;
+    const btn = { flex: '1 1 0', minWidth: 0, height: t.controlLg, borderRadius: t.radiusSm, padding: '0 16px', fontSize: t.text13, fontWeight: t.wMedium, fontFamily: 'inherit', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'background ' + t.dur1 + 'ms ' + t.easeStandard };
     return (
       <ModalOverlay isOpen={!!app} onClose={cancelConfirm} title={a ? 'Run ' + a.name + ' jobs automatically?' : ''}>
         {a && <>
-          <p style={{ fontSize: 13.5, color: '#4b5563', lineHeight: 1.6 }}>BlueAI will accept {a.name} jobs and finish them on your {a.name} account without asking you first, including posting videos and other content.</p>
-          <div style={{ marginTop: 12, border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' }}>
-            {APPS.map((x, i) => {
-              const willBeAuto = x.id === a.id || cur[x.id] === 'auto';
-              return (
-                <div key={x.id} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 11px', borderTop: i ? '1px solid #eef2f6' : 'none', background: x.id === a.id ? '#f5f9ff' : 'white' }}>
-                  <span style={{ display: 'flex', color: '#64748b' }}><x.Icon size={15} /></span>
-                  <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: INK }}>{x.name}</span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 700, color: willBeAuto ? '#1763c6' : MUTED }}>
-                    {willBeAuto ? <IcoZap size={12} /> : <IcoShieldCheck size={12} />}{willBeAuto ? 'Automatic' : 'Always ask'}
-                  </span>
-                </div>);
-            })}
-          </div>
-          <p style={{ fontSize: 12, color: FAINT, lineHeight: 1.5, marginTop: 7 }}>Each app has its own setting. The others stay on Always ask until you switch them.</p>
-          <p style={{ fontSize: 13.5, color: '#4b5563', lineHeight: 1.6, marginTop: 10 }}>By turning this on, you agree to let BlueAI do this for you on {a.name}. You can turn it off anytime.</p>
-          <div style={{ display: 'flex', gap: 8, marginTop: 18 }}>
-            <button onClick={cancelConfirm} style={{ ...btn, background: 'white', border: '1px solid #e2e8f0', color: '#374151' }}>Cancel</button>
-            <button onClick={agreeAuto} style={{ ...btn, background: ACCENT, border: 'none', color: 'white' }}>I agree, turn on</button>
+          <p style={{ fontSize: t.text14, color: t.ink2, lineHeight: t.leadingBody }}>BlueAI will take {a.name} jobs and finish them on your account without asking first, including posting videos. You can turn this off anytime.</p>
+          <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
+            <button onClick={cancelConfirm} style={{ ...btn, background: t.surface, border: t.stroke + 'px solid ' + t.lineStrong, color: t.ink }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = t.washHover; }} onMouseLeave={(e) => { e.currentTarget.style.background = t.surface; }}>Cancel</button>
+            <button onClick={agreeAuto} style={{ ...btn, background: t.action, border: t.stroke + 'px solid ' + t.action, color: t.onColor }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = t.actionHover; }} onMouseLeave={(e) => { e.currentTarget.style.background = t.action; }}>I agree, turn on</button>
           </div>
         </>}
       </ModalOverlay>);
   }
 
-  /* ── Version 2: the Automatic ribbon ── Sits above the composer, only in a chat where the BlueAI
-     worker has started and only while Automatic is on for some app (Abhisht, 2026-10-05): the
-     setting belongs to the worker skill, not to the product, so it shows up where the worker is
-     working and nowhere else. "Change" opens the same per-app menu upward, anchored to the
-     ribbon's left edge. Renders nothing while every app is on Always ask. */
+  /* ── ARCHIVED (2026-10-14, not rendered): Version 2, the Automatic ribbon ── Sits above the composer, only in a chat where the BlueAI
+     worker has started and only while Automatic is on (Abhisht, 2026-10-05): the setting belongs to
+     the worker skill, so it shows up where the worker is working and nowhere else. One line
+     (Arpit, 2026-10-14), "Automatic on YouTube", then "Change", which opens the mode popover above
+     the ribbon. Renders nothing in Always ask, so switching back makes it disappear. */
   function AutoRibbon() {
-    const { autoApps: on } = usePermissionMode();
-    const auto = on();
-    if (!auto.length) return null;
+    const t = T();
+    usePermissionMode();
+    const [open, setOpen] = useState(false);
+    const btn = useRef(null);
+    if (getMode() !== 'auto') return null;
     return (
-      <div className="ba-msg-in" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6, padding: '5px 5px 5px 11px', borderRadius: 10, background: '#eaf3ff', border: '1px solid #d6e6fb' }}>
-        <span style={{ display: 'flex', color: '#1763c6' }}><IcoZap size={13} /></span>
-        <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: '#1763c6', lineHeight: 1.4 }}>Automatic is on for {listNames(auto)}. BlueAI takes paid {auto.length === 1 ? auto[0].name + ' ' : ''}jobs without asking.</span>
-        <ModeChip placement="up" anchor="row" label="Change" bare />
+      <div className="ba-msg-in" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, padding: '4px 4px 4px 12px', borderRadius: t.radiusMd, background: t.blueTint, border: t.stroke + 'px solid ' + t.blueTintLine }}>
+        <span style={{ display: 'flex', color: t.blueInk }}><IcoZap size={t.iconSm} /></span>
+        <span style={{ flex: 1, minWidth: 0, fontSize: t.text13, fontWeight: t.wMedium, color: t.blueInk, lineHeight: t.leadingSnug, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Automatic on {APP.name}</span>
+        <button ref={btn} type="button" onClick={() => setOpen((v) => !v)} aria-haspopup="dialog" aria-expanded={open}
+          style={{ minHeight: t.hitMin, border: 'none', background: open ? t.washHover : 'transparent', borderRadius: t.radiusSm, padding: '0 8px', fontSize: t.text13, fontWeight: t.wMedium, color: t.blueInk, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'background ' + t.dur1 + 'ms ' + t.easeStandard }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = t.washHover; }}
+          onMouseLeave={(e) => { if (!open) e.currentTarget.style.background = 'transparent'; }}>Change</button>
+        {open && <ModePopover triggerRef={btn} onClose={() => setOpen(false)} />}
       </div>);
   }
 
-  window.AgentPermissions = { MODES, APPS, getMode, setMode, reset, autoApps, requestMode, usePermissionMode, ModeChip, AutoRibbon, AutoConfirm, IcoShieldCheck, IcoZap };
+  window.AgentPermissions = { MODES, APPS, HEADER, getMode, setMode, reset, autoApps, requestMode, usePermissionMode, ModeChip, AutoRibbon, ModeRows, AutoConfirm, IcoShieldCheck, IcoZap };
 })();

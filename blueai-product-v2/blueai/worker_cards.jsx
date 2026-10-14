@@ -2,21 +2,30 @@
 
    PlanCard   the live PLAN card: light-blue, label, summary, numbered plan, suggested-skill chip.
    AskBubble  a worker question: the live app's yellow "needs your input" bubble (optional bold
-              title), then quick-reply chips under it. Onboarding's questions AND the daily
-              paid-job ask use it, so every question reads as one, and the job ask is as light as
-              the rest (Abhisht, 2026-10-05). An option flagged `consent` turns
-              on Automatic for YouTube (the mode is per app), so it opens the consent dialog first
-              and only answers once the person agrees; Cancel leaves the question waiting.
+              title), then the way to answer it, which the Preview panel's "Answers" row picks
+              (Abhisht, 2026-10-14: "it's not evident enough that the users can also type"):
+                other   quick-reply chips plus an "Other" chip that puts the cursor in the composer,
+                        which stays open while the question waits, so a typed answer works too.
+                dock    no chips here: the answer panel docks over the composer (answer_dock.jsx).
+              (Chips-only, with the composer locked as live, was removed the same day.)
+              Onboarding's questions AND the daily paid-job ask use it, so every question reads as
+              one. An option flagged `consent` turns on Automatic for YouTube, so it opens the
+              consent dialog first and only answers once the person agrees; Cancel leaves the
+              question waiting. Chips follow the design system's Chip (DS 15, "V2 today" look).
+   choose     what picking an option does (consent first for Automatic, mode for Always ask), shared
+              by the chips, the docked panel and a typed answer.
 
-   Exposes window.WorkerCards = { PlanCard, AskBubble }. */
+   Exposes window.WorkerCards = { PlanCard, AskBubble, choose }. */
 (function () {
   const AP = () => window.AgentPermissions;
   const WF = () => window.WorkerFlow;
-  const FAINT = '#9ca3af';
+  const T = () => window.V2Tokens;
   /* Exact live colours: ai-worker frontend/src/components/chat/Message.tsx:20, the AwaitInput
      bubble ("bg-[#fdf6cf] border border-[#f3e8a8] text-[#8a6116]"), which this prototype already
      mirrors as chat_bubbles.jsx FINAL_STYLES.needsInput. */
   const INPUT = { bg: '#fdf6cf', border: '#f3e8a8', text: '#8a6116' };
+  const IcoPencil = ({ size = 15 }) =>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>;
 
   function PlanCard() {
     const P = WF().PLAN;
@@ -33,13 +42,29 @@
       </div>);
   }
 
-  function AskBubble({ step, answer, onAnswer }) {
+  // Picking an option: Automatic waits for the consent dialog's agreement, Always ask is set at once.
+  function choose(o, done) {
+    if (o.consent) { AP().requestMode('youtube', 'auto', () => done(o.id)); return; }
+    if (o.mode) AP().setMode('youtube', o.mode);
+    done(o.id);
+  }
+
+  // The design system's Chip, reply variant: answers once, then the row goes.
+  function Chip({ label, icon, onPick }) {
+    const t = T();
+    return (
+      <button type="button" onClick={onPick}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: t.controlSm, padding: '0 12px', border: t.stroke + 'px solid ' + t.lineStrong, background: t.surface, color: t.ink, borderRadius: t.radiusPill, fontSize: t.text13, fontWeight: t.wMedium, lineHeight: 1, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'background ' + t.dur2 + 'ms ' + t.easeStandard + ', border-color ' + t.dur2 + 'ms ' + t.easeStandard }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = t.washHover; e.currentTarget.style.borderColor = t.lineHover; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = t.surface; e.currentTarget.style.borderColor = t.lineStrong; }}>
+        {icon && <span style={{ display: 'flex', color: t.ink3 }}>{icon}</span>}{label}
+      </button>);
+  }
+
+  function AskBubble({ step, answer, onAnswer, ui = 'other', onOther }) {
+    const t = T();
     const pending = !answer;
-    const choose = (o) => {
-      if (o.consent) { AP().requestMode('youtube', 'auto', () => onAnswer(o.id)); return; }
-      if (o.mode) AP().setMode('youtube', o.mode);
-      onAnswer(o.id);
-    };
+    const Zap = AP().IcoZap;
     return (
       <div className="ba-msg-in" style={{ marginBottom: 12 }}>
         <div style={{ maxWidth: 310, background: INPUT.bg, border: '1px solid ' + INPUT.border, borderRadius: 16, padding: '11px 14px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
@@ -51,18 +76,15 @@
             </ul>}
           {step.question && <p style={{ fontSize: 13.5, color: INPUT.text, lineHeight: 1.5, marginTop: 7 }}>{step.question}</p>}
         </div>
-        {pending && <>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 8 }}>
-            {step.options.map((o) =>
-              <button key={o.id} className="ba-chip" onClick={() => choose(o)}
-                style={{ border: '1.5px solid #c7dcf5', background: 'white', color: '#1990FF', borderRadius: 999, padding: '6px 13px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-                {o.label}
-              </button>)}
+        {pending && ui !== 'dock' && <>
+          <div role="group" aria-label={step.question || step.lead} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+            {step.options.map((o) => <Chip key={o.id} label={o.label} icon={o.consent ? <Zap size={16} /> : null} onPick={() => choose(o, onAnswer)} />)}
+            {ui === 'other' && <Chip label="Other" icon={<IcoPencil />} onPick={() => onOther && onOther()} />}
           </div>
-          {step.hint && <p style={{ fontSize: 11.5, color: FAINT, lineHeight: 1.45, marginTop: 7 }}>{step.hint}</p>}
+          {step.hint && <p style={{ fontSize: t.text12, color: t.ink3, lineHeight: t.leadingSnug, marginTop: 7 }}>{step.hint}</p>}
         </>}
       </div>);
   }
 
-  window.WorkerCards = { PlanCard, AskBubble };
+  window.WorkerCards = { PlanCard, AskBubble, choose };
 })();
